@@ -1,37 +1,18 @@
-# Hook: Pre-Task Quality
+---
+description: Check preconditions before starting a spec task
+event: on_task_start
+---
 
-## Trigger
-Before starting execution of a task from a spec.
+## Conditions
 
-## What it checks
+- A task from a spec in `.kiro/specs/` is about to be executed
+- The task file (tasks.md) exists and has structured task entries
 
-1. **Task has done criteria** — The task must have at least one specific, verifiable done criterion.
+## Instructions
 
-2. **Dependencies are met** — If the task depends on other tasks, verify those are marked complete.
-
-3. **Risks are acknowledged** — If the task is flagged as risky in the spec, confirm the user is aware.
-
-4. **Preconditions exist** — If the task requires a migration, config change, or external setup, verify it's in place.
-
-## Actions
-
-- If done criteria are missing, block and ask the user to define them.
-- If dependencies are not met, warn and list what's pending.
-- If risks exist, display them before proceeding.
-
-## Output
-
-```
-## Pre-Task Check: [task title]
-
-### Ready: YES | NO
-
-### Checklist
-- [x] or [ ] Done criteria defined
-- [x] or [ ] Dependencies met
-- [x] or [ ] Risks acknowledged
-- [x] or [ ] Preconditions in place
-
-### Blockers
-- [list or "none"]
-```
+- Read the current task entry from tasks.md
+- Verify the task has done criteria defined — if missing, ask the user to define them before proceeding
+- Check if the task has dependencies on other tasks — if those tasks are not marked complete, warn the user
+- If the task mentions database changes (migration, ALTER, new table), verify the rollback strategy is documented in design.md
+- If the task touches files in shared code paths (service/, model/, repository/), flag it as higher risk and remind the user to check what else depends on those files
+- Read `.kiro/state/RISKS.md` and display any open risks relevant to this task's scope

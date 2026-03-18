@@ -1,46 +1,18 @@
-# Hook: Post-Task Verification
+---
+description: Verify task completion after execution
+event: on_task_complete
+---
 
-## Trigger
-After a task from a spec is marked as complete.
+## Conditions
 
-## What it checks
+- A task from a spec in `.kiro/specs/` has just been completed
+- The task file (tasks.md) exists with structured task entries
 
-1. **Expected files changed** — Compare the files listed in the task with the files actually modified.
+## Instructions
 
-2. **Done criteria met** — Review each done criterion and check if it's satisfied.
-
-3. **Tests exist** — If the task changed behavior, verify a test covers it.
-
-4. **State files updated** — Check that CHANGELOG_AI.md has an entry for this task.
-
-5. **No unintended changes** — Flag files that were modified but not listed in the task.
-
-## Actions
-
-- If expected files weren't changed, warn the user.
-- If tests are missing for behavioral changes, block completion.
-- If state files weren't updated, remind the user.
-- If unintended files were changed, ask for justification.
-
-## Output
-
-```
-## Post-Task Check: [task title]
-
-### Verdict: PASS | NEEDS ATTENTION
-
-### Files
-- Expected: [list]
-- Changed: [list]
-- Unexpected: [list or "none"]
-
-### Done criteria
-- [x] or [ ] for each criterion
-
-### State
-- [ ] CHANGELOG_AI.md updated
-- [ ] Other state files updated (if applicable)
-
-### Issues
-- [list or "none"]
-```
+- Read the completed task entry from tasks.md
+- Check each done criterion — verify it was actually satisfied
+- Compare the files listed in the task with the files actually modified in the working tree — flag unexpected changes or missing expected changes
+- If the task changed behavior (not just refactoring), verify a test exists that covers the change
+- Verify `.kiro/state/CHANGELOG_AI.md` has an entry for this task — if not, remind the user to add one
+- If the task was the last one in the spec, suggest running the verifier agent for a full delivery check

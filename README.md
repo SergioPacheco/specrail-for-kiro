@@ -137,6 +137,10 @@ your-project/
 | `postgres` | PostgreSQL | Migrations with rollback, query review, schema safety |
 | `python-fastapi` | Python + FastAPI | API design, async patterns, typing |
 
+## Example walkthrough
+
+See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete walkthrough: bootstrapping a Java 17 / JSF / PostgreSQL project, mapping the codebase, planning a feature (email notifications with 4 tasks), and fixing a bug (discount rounding with regression test first).
+
 ## Recommended conventions
 
 - Every bugfix starts with a reproduction step
