@@ -10,13 +10,16 @@ Reusable skills, steering, hooks, and workflow packs for brownfield and producti
 
 ## What it is
 
-SpecRail is a community toolkit that adds delivery discipline on top of [Kiro](https://kiro.dev). It provides:
+SpecRail is a community toolkit that adds delivery discipline on top of [Kiro](https://kiro.dev). It's built on [Ralph principles](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum): small steps, feedback loops, progress tracking, explicit quality, and risk-first execution.
+
+It provides:
 
 - **Delivery skills** — Markdown playbooks (agents) that teach Kiro how to plan, verify, and investigate bugs with built-in quality gates
 - **Steering packs** — opinionated project/tech/coding standards ready to drop into `.kiro/steering/`
 - **Spec templates** — structured requirements, design, and task templates for features and bugfixes
-- **Hooks** — automated checks on spec creation, task execution, and file saves
-- **State tracking** — persistent operational memory (decisions, risks, changelog) across sessions
+- **Hooks** — automated feedback loops on spec creation, task execution, and file saves
+- **State tracking** — persistent operational memory (decisions, risks, progress) across sessions
+- **Ralph loop** — autonomous execution script that runs tasks in a loop: pick → implement → test → commit → repeat
 - **Domain packs** — pre-configured setups for Java legacy, Spring Boot, PostgreSQL, FastAPI, and more
 
 Every piece is plain Markdown. No code required to create or customize. Anyone on the team — developers, architects, leads, QA — can write and adjust delivery rules.
@@ -26,18 +29,6 @@ Every piece is plain Markdown. No code required to create or customize. Anyone o
 The industry keeps building separate bots for each function. That doesn't scale — it fragments context and creates maintenance overhead.
 
 SpecRail takes a different approach: **document expertise as skills** (Markdown playbooks) that a single AI loads on demand. Kiro sees a list of available skills and only reads the full playbook when it's needed. This progressive disclosure keeps the AI focused and avoids context overload.
-
-Kiro gives you specs, steering, hooks, and agents. That's powerful. But in real projects — especially brownfield, enterprise, and legacy codebases — you also need:
-
-- Decisions persisted across sessions
-- Risks explicitly tracked
-- Definition of done per task
-- Stack-specific coding standards
-- Structural change verification
-- Legacy-safe review workflows
-- Operational memory between sessions
-
-SpecRail fills that gap. It doesn't compete with Kiro — it makes Kiro work the way serious teams need.
 
 ## Skills + MCP
 
@@ -63,6 +54,8 @@ The bootstrap script copies the selected steering files, spec templates, agents,
 
 ## How it works
 
+SpecRail follows the Ralph loop: define scope → execute in small steps → feedback loops validate each step → progress is tracked → repeat until done.
+
 ```
 1. Install the kit           → bootstrap.py copies templates into .kiro/
 2. Choose a pack             → java-legacy, spring-boot, postgres, etc.
@@ -75,6 +68,49 @@ The bootstrap script copies the selected steering files, spec templates, agents,
 9. Archive the spec          → move to specs/archive/
 10. State persists           → STATE.md, DECISIONS.md, RISKS.md updated
 ```
+
+### Two modes of execution
+
+| Mode | How it works | Best for |
+|------|-------------|----------|
+| **HITL** (human-in-the-loop) | Run one task at a time, watch, intervene | Learning, risky tasks, architectural decisions |
+| **AFK** (away from keyboard) | Ralph loop runs tasks autonomously | Bulk work, well-defined tasks, low-risk implementation |
+
+Start with HITL — watch the first few iterations. Once you trust the prompt, go AFK.
+
+### The Ralph loop
+
+```bash
+# Execute all tasks from a spec, max 10 iterations
+./scripts/specrail-ralph.sh order-email-notification
+
+# Limit to 5 iterations
+./scripts/specrail-ralph.sh order-email-notification 5
+```
+
+Each iteration:
+1. Reads `tasks.md` to find the next uncompleted task
+2. Implements that one task
+3. Runs feedback loops (tests, types, lint)
+4. Commits atomically
+5. Updates `PROGRESS.md` and `CHANGELOG_AI.md`
+6. Stops when all tasks are done or max iterations reached
+
+## Core principles
+
+SpecRail is built on these principles, adapted from [Ralph Wiggum methodology](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum):
+
+**Small steps** — Each task is one atomic commit. Never outrun your feedback loops. If a task feels too large, the planner breaks it into subtasks. Quality over speed.
+
+**Feedback loops** — Tests, types, and linting run after every task. Hooks validate before and after execution. Nothing gets committed if feedback loops fail. The more loops you give the AI, the higher quality code it produces.
+
+**Progress tracking** — `PROGRESS.md` tracks what's done per spec. `STATE.md` persists across sessions. The AI reads these before each iteration to skip exploration and jump straight into the next task.
+
+**Risk-first execution** — The planner prioritizes risky tasks first: architectural decisions, integration points, unknown unknowns. Easy wins come last. Fail fast on hard problems.
+
+**Explicit quality** — The steering files tell the AI what kind of codebase this is. Production code with audit trails, not a prototype. The AI follows the codebase patterns it sees — so keep your codebase clean before letting it loose.
+
+**HITL → AFK** — Start supervised, go autonomous once you trust the prompt. Use HITL for risky tasks and architectural decisions. Use AFK for well-defined implementation work.
 
 ## Kiro folder layout after bootstrap
 
@@ -140,28 +176,6 @@ your-project/
 ## Example walkthrough
 
 See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete walkthrough: bootstrapping a Java 17 / JSF / PostgreSQL project, mapping the codebase, planning a feature (email notifications with 4 tasks), and fixing a bug (discount rounding with regression test first).
-
-## Ralph mode (autonomous execution)
-
-SpecRail includes a [Ralph-style](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum) loop script that executes tasks autonomously. Instead of running each task manually, the loop picks the next uncompleted task, implements it, runs tests, commits, and moves on.
-
-```bash
-# Execute all tasks from a spec, max 10 iterations
-./scripts/specrail-ralph.sh order-email-notification
-
-# Limit to 5 iterations
-./scripts/specrail-ralph.sh order-email-notification 5
-```
-
-Each iteration:
-1. Reads `tasks.md` to find the next uncompleted task
-2. Implements that one task
-3. Runs feedback loops (tests, types, lint)
-4. Commits atomically
-5. Updates `PROGRESS.md` and `CHANGELOG_AI.md`
-6. Stops when all tasks are done or max iterations reached
-
-Start with HITL (human-in-the-loop) — watch the first few iterations. Once you trust the prompt, go AFK.
 
 ## Recommended conventions
 

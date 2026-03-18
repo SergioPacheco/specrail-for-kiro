@@ -32,6 +32,44 @@
 - If a PR is too large, split it
 - Include context in commit messages: what changed and why
 
+## Feedback loops
+
+Never commit without running feedback loops. The more loops you give the AI, the higher quality code it produces.
+
+### Required loops (run after every task)
+```bash
+# Compilation / type checking — catches type errors, missing imports
+mvn compile                 # Java
+npm run typecheck           # TypeScript
+
+# Tests — catches broken logic, regressions
+mvn test                    # Java
+npm test                    # Node.js
+
+# Linting — catches style violations, potential bugs
+mvn checkstyle:check        # Java
+npm run lint                # TypeScript/JavaScript
+```
+
+### Rules
+- Do NOT commit if any feedback loop fails. Fix issues first.
+- Run loops after each task, not at the end of a batch
+- If a loop is slow (>2 min), consider running a focused subset during development and full suite before commit
+- Pre-commit hooks are the last line of defense — configure them to block bad commits
+
+### Why this matters
+AI agents amplify what they see. If feedback loops catch errors early, the agent learns to avoid them. If errors slip through, the agent copies the broken patterns. Tight feedback loops = higher quality code.
+
+## Explicit quality
+
+Tell the AI what kind of codebase this is. Without explicit guidance, it will default to prototype-quality code.
+
+### For production code
+This codebase is production software with real users. Every shortcut becomes someone else's burden. Every hack compounds into technical debt. Follow existing patterns. Add tests. Handle errors. Log meaningfully.
+
+### The repo wins
+Your instructions compete with your codebase. When the AI explores your repo, it sees two sources of truth: what you told it to do and what you actually did. The codebase always wins. Keep your codebase clean before letting the AI loose — it will amplify whatever patterns it finds.
+
 ## Atomic commits
 
 Each task in a spec maps to exactly one git commit. This keeps history clean, enables `git bisect`, and makes each change independently revertable.

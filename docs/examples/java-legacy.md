@@ -142,44 +142,79 @@ Remove the CDI event observer. Status changes continue to work without notificat
 ```markdown
 # Tasks — Order Email Notification
 
+## Feedback loops
+mvn test && mvn compile && mvn checkstyle:check
+
 ### Task 1: Create EmailNotificationService
+- Priority: high — core abstraction, other tasks depend on it
 - Files: src/main/java/com/acme/orders/service/EmailNotificationService.java
 - Done criteria:
   - [ ] Service compiles and is injectable via CDI
   - [ ] Unit test verifies email content generation
+  - [ ] Feedback loops pass
 - Commit: feat(notification): add EmailNotificationService
 - Parallel: yes
 
 ### Task 2: Add SMTP configuration
+- Priority: high — integration point
 - Files: src/main/resources/application.properties
 - Done criteria:
   - [ ] SMTP host, port, from-address configurable via properties
   - [ ] No credentials hardcoded (use env vars)
+  - [ ] Feedback loops pass
 - Commit: feat(notification): add SMTP configuration
 - Parallel: yes
 
 ### Task 3: Fire CDI event on status change
+- Priority: medium — wires things together
 - Files: src/main/java/com/acme/orders/service/OrderService.java
 - Done criteria:
   - [ ] CDI event fired when status changes to SHIPPED or DELIVERED
   - [ ] Existing tests still pass
   - [ ] No other behavior changed in OrderService
+  - [ ] Feedback loops pass
 - Commit: feat(notification): fire event on order status change
 - Dependencies: Task 1
 
 ### Task 4: Add integration test
+- Priority: low — verification, not architecture
 - Files: src/test/java/com/acme/orders/service/EmailNotificationServiceTest.java
 - Done criteria:
   - [ ] Test verifies email is sent on CONFIRMED→SHIPPED
   - [ ] Test verifies email is NOT sent on other transitions
   - [ ] Test verifies async execution (status update returns before email)
+  - [ ] Feedback loops pass
 - Commit: test(notification): add email notification integration test
 - Dependencies: Task 1, Task 3
 ```
 
-### Step 3: Execute and verify
+### Step 3: Execute with Ralph loop
 
-Each task is executed, hooks validate, one commit per task. After all 4 tasks:
+Two options:
+
+**HITL mode** (recommended for first time):
+Run one task at a time, watch, intervene if needed.
+
+**AFK mode** — let Ralph handle all 4 tasks:
+```bash
+./scripts/specrail-ralph.sh order-email-notification 6
+```
+
+Ralph runs up to 6 iterations. Each iteration:
+1. Reads tasks.md → picks next uncompleted task (highest priority first)
+2. Implements it
+3. Runs feedback loops (`mvn test && mvn compile && mvn checkstyle:check`)
+4. Commits atomically
+5. Updates PROGRESS.md
+
+After 4 iterations (one per task), Ralph finds all tasks complete and exits:
+```
+=== All tasks complete! ===
+Spec: order-email-notification
+Iterations used: 4/6
+```
+
+### Step 4: Verify
 
 > "Verify the order-email-notification feature"
 
@@ -190,6 +225,12 @@ The verifier checks all criteria and produces:
 
 **Spec:** order-email-notification
 **Verdict:** PASS WITH NOTES
+**Ralph iterations used:** 4
+
+### Feedback loops
+- [x] Tests pass (mvn test)
+- [x] Compilation passes (mvn compile)
+- [x] Lint passes (mvn checkstyle:check)
 
 ### Criteria check
 - [x] Email sent on CONFIRMED → SHIPPED
@@ -203,7 +244,7 @@ The verifier checks all criteria and produces:
 - OrderService is now 1,215 lines — consider extracting status management
 ```
 
-### Step 4: Archive
+### Step 5: Archive
 
 ```
 .kiro/specs/order-email-notification/ → .kiro/specs/archive/2026-03-17-order-email-notification/
@@ -293,8 +334,14 @@ After execution, the verifier confirms PASS, and the spec is archived.
 
 2. **Clarify before planning** — the planner asked 4 questions that prevented wrong assumptions (sync vs async, which transitions, existing email service).
 
-3. **Bugfix discipline** — the investigator found the real root cause (rounding mode mismatch) instead of just patching the symptom. The regression test proves the fix works.
+3. **Risk-first ordering** — Task 1 (core service) and Task 2 (integration point) are high priority. Task 4 (verification test) is low priority. Fail fast on the hard stuff.
 
-4. **Atomic commits** — each task is one commit. If the email notification causes issues, you can revert task 3 without losing task 1 and 2.
+4. **Feedback loops every iteration** — `mvn test && mvn compile && mvn checkstyle:check` runs after every task. Nothing gets committed if loops fail.
 
-5. **State persists** — DECISIONS.md records "chose CDI events over direct call for notification". Next session, the planner knows this decision exists.
+5. **HITL → AFK** — start by watching the first iteration. Once you see the pattern works, let Ralph run the remaining tasks autonomously.
+
+6. **Bugfix discipline** — the investigator found the real root cause (rounding mode mismatch) instead of just patching the symptom. The regression test proves the fix works.
+
+7. **Atomic commits** — each task is one commit. If the email notification causes issues, you can revert task 3 without losing task 1 and 2.
+
+8. **State persists** — DECISIONS.md records "chose CDI events over direct call for notification". PROGRESS.md tracks what each Ralph iteration did. Next session, the planner knows exactly where things stand.
