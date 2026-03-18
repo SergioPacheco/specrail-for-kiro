@@ -94,6 +94,7 @@ Use the spec templates from `.kiro/`:
 - Update `.kiro/state/RISKS.md` if new risks are identified
 - Update `.kiro/state/DECISIONS.md` if architectural decisions are made during planning
 - Each task = one atomic commit
+- Do NOT edit `tasks.md` during execution except to mark checkboxes as `[x]`. The planner owns the task list structure — coding agents only check off done criteria.
 
 ## Output format
 

@@ -74,6 +74,21 @@ Your instructions compete with your codebase. When the AI explores your repo, it
 
 Each task in a spec maps to exactly one git commit. This keeps history clean, enables `git bisect`, and makes each change independently revertable.
 
+### Clean state rule
+
+Every commit must leave the codebase in a mergeable state. No half-implemented features, no broken builds, no failing tests. If you can't finish a task cleanly, revert and document why in PROGRESS.md.
+
+Think of it as shift work: the next agent starts with zero memory. If you leave a mess, they'll waste their entire context window cleaning up instead of making progress.
+
+### Markdown tampering protection
+
+AI agents are more likely to inappropriately edit Markdown files than structured formats. To prevent this:
+
+- Do NOT edit `tasks.md` except to mark done criteria checkboxes as `[x]`
+- Do NOT remove, reorder, or rewrite tasks — the planner owns the task list
+- Do NOT edit `requirements.md` or `design.md` during execution — those are the spec
+- State files (PROGRESS.md, CHANGELOG_AI.md) are append-only during execution
+
 ### Commit message format
 
 ```
