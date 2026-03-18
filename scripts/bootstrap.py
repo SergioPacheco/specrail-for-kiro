@@ -63,10 +63,13 @@ def bootstrap(project_dir: Path, pack_name: str):
     kiro_dir.mkdir(exist_ok=True)
     print(f"Bootstrapping '{pack_name}' into {kiro_dir}\n")
 
-    # Steering
+    # Steering — from pack-specific directory
     steering_dst = kiro_dir / "steering"
     steering_dst.mkdir(exist_ok=True)
-    steering_src = SPECRAIL_ROOT / "templates" / "steering"
+    steering_src = SPECRAIL_ROOT / "packs" / pack_name / "steering"
+    if not steering_src.is_dir():
+        # Fallback to templates/steering for packs without their own steering
+        steering_src = SPECRAIL_ROOT / "templates" / "steering"
     print("[steering]")
     for fname in pack["steering"]:
         src = steering_src / fname
@@ -76,6 +79,8 @@ def bootstrap(project_dir: Path, pack_name: str):
             print(f"  + steering/{fname}")
         elif dst.exists():
             print(f"  ~ steering/{fname} (exists, skipped)")
+        else:
+            print(f"  ! steering/{fname} (not found in pack)")
 
     # Agents, hooks, state, specs
     for label, src_rel in CORE_DIRS.items():

@@ -45,6 +45,8 @@ The user asks you to verify a task, a feature, or the current delivery state.
    - **PASS WITH NOTES** — criteria met but with observations worth noting
    - **FAIL** — specific criteria not met, with details on what's missing
 
+9. **Save the report** — Write the verification report to the spec folder as `VERIFICATION.md`. This creates a permanent record of the verification outcome.
+
 ## Rules
 
 - Never approve work that has no tests for changed behavior
@@ -57,10 +59,13 @@ The user asks you to verify a task, a feature, or the current delivery state.
 
 ## Output format
 
+Write this report to `.kiro/specs/<spec-name>/VERIFICATION.md`:
+
 ```
 ## Verification Report
 
 **Spec:** [name]
+**Date:** YYYY-MM-DD
 **Verdict:** PASS | PASS WITH NOTES | FAIL
 **Ralph iterations used:** [N]
 

@@ -137,12 +137,15 @@ your-project/
     │   ├── pre-task-quality.md
     │   ├── post-task-verification.md
     │   ├── on-spec-created.md
-    │   └── on-file-save-guardrails.md
+    │   ├── on-file-save-guardrails.md
+    │   ├── session-summary.md
+    │   └── decision-tracker.md
     └── state/
         ├── STATE.md
         ├── DECISIONS.md
         ├── RISKS.md
-        └── CHANGELOG_AI.md
+        ├── CHANGELOG_AI.md
+        └── init.sh
 ```
 
 ## Agents included
@@ -163,6 +166,8 @@ your-project/
 | **pre-task-quality** | Before task execution | Checks preconditions, flags risks |
 | **post-task-verification** | After task execution | Verifies expected files changed, tests pass, state updated |
 | **on-file-save-guardrails** | File save | Checks critical file changes against coding standards |
+| **session-summary** | End of session | Auto-generates STATE.md summary from git log, changelog, progress |
+| **decision-tracker** | After planning/decisions | Detects architectural decisions and records them in DECISIONS.md |
 
 ## Available packs
 
@@ -206,11 +211,12 @@ See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete 
 - [x] Example walkthrough (Java legacy)
 
 ### v0.2 — Automation
-- [ ] Auto-generation of STATE.md summaries
-- [ ] Auto-update of DECISIONS.md
-- [ ] Spring Boot, FastAPI, and React packs
-- [ ] Release checklist templates
-- [ ] Verification reports
+- [x] Auto-generation of STATE.md summaries (session-summary hook)
+- [x] Auto-update of DECISIONS.md (decision-tracker hook)
+- [x] Spring Boot, PostgreSQL, and FastAPI packs
+- [x] Release checklist templates
+- [x] Verification reports (verifier saves VERIFICATION.md)
+- [x] Pack-specific steering (bootstrap copies from `packs/<name>/steering/`)
 
 ### v0.3 — Team & Integration
 - [ ] MCP integration
