@@ -1,242 +1,185 @@
 # specrail-for-kiro
 
-**Structured delivery toolkit for Kiro.**
+Delivery kit for [Kiro](https://kiro.dev): opinionated steering, subagents, and hooks for structured software delivery.
 
-Reusable skills, steering, hooks, and workflow packs for brownfield and production-grade software delivery.
-
-> Stop building separate agents. Start documenting expertise as skills that Kiro can learn and apply on demand.
+> Steering tells Kiro your standards. Subagents teach it delivery workflows. Hooks enforce quality gates. SpecRail bundles all three.
 
 ---
 
 ## What it is
 
-SpecRail is a community toolkit that adds delivery discipline on top of [Kiro](https://kiro.dev). It's built on [Ralph principles](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum): small steps, feedback loops, progress tracking, explicit quality, and risk-first execution.
+SpecRail is a community toolkit that adds delivery discipline to Kiro projects. It provides:
 
-It provides:
+- **Steering files** — project standards (tech stack, coding rules, testing strategy, security) with Kiro inclusion modes (`always`, `auto`, `manual`)
+- **Subagents** — Markdown playbooks with YAML frontmatter that Kiro loads on demand (planner, verifier, bugfix investigator, etc.)
+- **Hooks** — automated quality gates on spec creation, task execution, and file saves
+- **Spec templates** — structured requirements, design, and task breakdowns
+- **Pack overlays** — stack-specific opinions (Java legacy, Spring Boot, PostgreSQL, FastAPI, compliance)
 
-- **Delivery skills** — Markdown playbooks (agents) that teach Kiro how to plan, verify, and investigate bugs with built-in quality gates
-- **Steering packs** — opinionated project/tech/coding standards ready to drop into `.kiro/steering/`
-- **Spec templates** — structured requirements, design, and task templates for features and bugfixes
-- **Hooks** — automated feedback loops on spec creation, task execution, and file saves
-- **State tracking** — persistent operational memory (decisions, risks, progress) across sessions
-- **Ralph loop** — autonomous execution script that runs tasks in a loop: pick → implement → test → commit → repeat
-- **Domain packs** — pre-configured setups for Java legacy, Spring Boot, PostgreSQL, FastAPI, and more
+Built on [Ralph principles](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum): small steps, feedback loops, progress tracking, risk-first execution.
 
-Every piece is plain Markdown. No code required to create or customize. Anyone on the team — developers, architects, leads, QA — can write and adjust delivery rules.
-
-## Why skills, not more agents?
-
-The industry keeps building separate bots for each function. That doesn't scale — it fragments context and creates maintenance overhead.
-
-SpecRail takes a different approach: **document expertise as skills** (Markdown playbooks) that a single AI loads on demand. Kiro sees a list of available skills and only reads the full playbook when it's needed. This progressive disclosure keeps the AI focused and avoids context overload.
-
-## Skills + MCP
-
-SpecRail skills are designed to work alongside [MCP](https://modelcontextprotocol.io/) servers:
-
-- **MCP is the hand** — connects Kiro to external tools and data (APIs, databases, CI pipelines)
-- **Skills are the experience** — tell Kiro what to do with the data and tools MCP provides
-
-When you combine SpecRail skills with MCP integrations, Kiro can autonomously execute complex delivery workflows with discipline built in.
-
-## Install
+## Quick start
 
 ```bash
-# Clone the repo
-git clone https://github.com/<your-org>/specrail-for-kiro.git
+git clone https://github.com/SergioPacheco/specrail-for-kiro.git
 
-# Bootstrap into your Kiro project (single pack)
 cd your-project
 python path/to/specrail-for-kiro/scripts/bootstrap.py --pack java-legacy
-
-# Or combine multiple packs
-python path/to/specrail-for-kiro/scripts/bootstrap.py --pack spring-boot,postgres,compliance
 ```
 
-The bootstrap script copies the selected steering files, spec templates, agents, hooks, and state files into your project's `.kiro/` directory. Packs can be combined — use `spring-boot,postgres` to get both Spring Boot and PostgreSQL steering, or add `compliance` for enterprise audit trails.
+This installs 7 files (lite mode):
+
+```
+.kiro/
+├── steering/
+│   ├── product.md            ← your product context (always included)
+│   ├── tech.md               ← your tech stack (always included)
+│   ├── structure.md          ← your project layout (always included)
+│   └── brownfield-java.md    ← Java legacy overlay (auto)
+├── agents/
+│   ├── planner.md            ← plan features into small tasks
+│   └── verifier.md           ← verify delivery meets criteria
+└── specs/
+    └── feature/
+        └── tasks.template.md ← task breakdown template
+```
+
+Then tell Kiro: *"Plan the order email notification feature"* — the planner subagent takes over.
+
+## Install modes
+
+| Mode | What you get | Files | Command |
+|------|-------------|-------|---------|
+| **lite** (default) | 3 core steering + pack overlay + 2 agents + tasks template | ~7 | `--pack java-legacy` |
+| **full** | 6 steering + shared (mcp, team) + pack overlay + 6 agents + hooks + state + specs | ~35 | `--pack java-legacy --mode full` |
+| **add** | Add a pack overlay to existing install | +1-2 | `--pack postgres --mode add` |
+
+Combine packs: `--pack spring-boot,postgres,compliance --mode full`
+
+List available packs: `bootstrap.py --list`
 
 ## How it works
 
-SpecRail follows the Ralph loop: define scope → execute in small steps → feedback loops validate each step → progress is tracked → repeat until done.
-
 ```
-1. Install the kit           → bootstrap.py copies templates into .kiro/
-2. Choose a pack             → java-legacy, spring-boot, postgres, etc.
-3. Map the codebase          → codebase-mapper analyzes existing code
-4. Steering is set           → .kiro/steering/ has your standards
-5. Create or refine a spec   → use the spec templates
-6. Call the planner agent    → clarify, scope, risks, tasks, done criteria
-7. Execute task by task      → hooks validate, one commit per task
-8. Verifier closes delivery  → checks tests, docs, state
-9. Archive the spec          → move to specs/archive/
-10. State persists           → STATE.md, DECISIONS.md, RISKS.md updated
+1. Bootstrap          → steering + agents into .kiro/
+2. Customize steering → fill in your product, tech, structure
+3. Plan a feature     → planner subagent creates tasks.md
+4. Execute tasks      → one task at a time, feedback loops after each
+5. Verify             → verifier checks criteria, saves VERIFICATION.md
+6. Archive            → move completed spec to specs/archive/
 ```
 
-### Two modes of execution
+### Execution modes
 
-| Mode | How it works | Best for |
-|------|-------------|----------|
-| **HITL** (human-in-the-loop) | Run one task at a time, watch, intervene | Learning, risky tasks, architectural decisions |
-| **AFK** (away from keyboard) | Ralph loop runs tasks autonomously | Bulk work, well-defined tasks, low-risk implementation |
+| Mode | How | Best for |
+|------|-----|----------|
+| **HITL** | Run one task, watch, intervene | Risky tasks, learning, architectural decisions |
+| **AFK** | Ralph loop runs tasks autonomously | Well-defined tasks, bulk implementation |
 
-Start with HITL — watch the first few iterations. Once you trust the prompt, go AFK.
-
-### The Ralph loop
+### Ralph loop (experimental)
 
 ```bash
-# Execute all tasks from a spec, max 10 iterations
-./scripts/specrail-ralph.sh order-email-notification
-
-# Limit to 5 iterations
 ./scripts/specrail-ralph.sh order-email-notification 5
 ```
 
-Each iteration:
-1. Reads `tasks.md` to find the next uncompleted task
-2. Implements that one task
-3. Runs feedback loops (tests, types, lint)
-4. Commits atomically
-5. Updates `PROGRESS.md` and `CHANGELOG_AI.md`
-6. Stops when all tasks are done or max iterations reached
+⚠️ Experimental. Uses `kiro-cli chat --no-interactive`. Test with HITL first.
+
+## Subagents
+
+All subagents have YAML frontmatter (`name`, `description`, `tools`, `model`) compatible with Kiro custom subagents.
+
+| Agent | Mode | Purpose |
+|-------|------|---------|
+| **planner** | lite | Break features into small, risk-scored tasks with done criteria |
+| **verifier** | lite | Check delivery against criteria, save VERIFICATION.md |
+| **bugfix-investigator** | full | Reproduce → root cause → fix (never skip steps) |
+| **codebase-mapper** | full | Analyze brownfield codebase, produce structural map |
+| **quick-change** | full | Small changes without full planner flow |
+| **report-generator** | full | Delivery summaries from state files |
+
+## Hooks
+
+| Hook | Trigger | Mode |
+|------|---------|------|
+| **on-spec-created** | Spec creation | full |
+| **pre-task-quality** | Before task | full |
+| **post-task-verification** | After task | full |
+| **on-file-save-guardrails** | File save | full |
+| **session-summary** | End of session | full |
+| **decision-tracker** | After decisions | full |
+
+## Packs
+
+| Pack | Overlay file | Focus |
+|------|-------------|-------|
+| `java-legacy` | `brownfield-java.md` | Safe refactoring, migration rules, legacy patterns |
+| `spring-boot` | `spring-boot.md` | Spring Boot 3.x conventions, sliced tests, security config |
+| `postgres` | `postgres.md` | Zero-downtime migrations, query optimization, operational rules |
+| `python-fastapi` | `fastapi.md` | Pydantic v2, async patterns, typed config |
+| `compliance` | `compliance.md` + `regulatory.md` | Audit trails, SOX/HIPAA/PCI-DSS/GDPR awareness |
+
+Packs are composable. Use `spring-boot,postgres` for a Spring Boot app with heavy database work, or add `compliance` for enterprise audit requirements.
+
+## Steering inclusion modes
+
+SpecRail uses Kiro's inclusion modes to control context consumption:
+
+| File | Mode | When loaded |
+|------|------|-------------|
+| product.md, tech.md, structure.md | `always` | Every interaction |
+| coding-standards.md, testing.md, security.md | `auto` | When Kiro determines relevance |
+| Pack overlays (brownfield-java.md, etc.) | `auto` | When working with that stack |
+| mcp.md, team.md | `manual` | Only when explicitly requested |
+| compliance.md, regulatory.md | `manual` | Only for regulated projects |
+
+## What is tested vs conceptual
+
+| Component | Status |
+|-----------|--------|
+| Bootstrap script (lite, full, add, pack composition) | ✅ Tested |
+| Steering files (content, frontmatter, inclusion modes) | ✅ Tested |
+| Subagent frontmatter (name, description, tools, model) | ✅ Tested |
+| Planner and verifier workflows | 🔶 Tested in Kiro chat, not automated |
+| Ralph loop (`specrail-ralph.sh`) | ⚠️ Experimental — CLI flags may change |
+| Hooks | 🔶 Format validated, not tested in live Kiro hooks system |
+| MCP integration | 📋 Conceptual — steering guide only |
 
 ## Core principles
 
-SpecRail is built on these principles, adapted from [Ralph Wiggum methodology](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum):
+Adapted from [Ralph Wiggum methodology](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum):
 
-**Small steps** — Each task is one atomic commit. Never outrun your feedback loops. If a task feels too large, the planner breaks it into subtasks. Quality over speed.
+- **Small steps** — one task = one commit. Never outrun your feedback loops.
+- **Feedback loops** — tests, types, lint after every task. Nothing committed if they fail.
+- **Progress tracking** — PROGRESS.md per spec, STATE.md across sessions.
+- **Risk-first** — hard problems first, easy wins last. Planner scores risk 1-5 per task.
+- **Explicit quality** — steering tells the AI this is production code. The codebase wins.
+- **HITL → AFK** — start supervised, go autonomous once you trust the prompt.
 
-**Feedback loops** — Tests, types, and linting run after every task. Hooks validate before and after execution. Nothing gets committed if feedback loops fail. The more loops you give the AI, the higher quality code it produces.
+## Example
 
-**Progress tracking** — `PROGRESS.md` tracks what's done per spec. `STATE.md` persists across sessions. The AI reads these before each iteration to skip exploration and jump straight into the next task.
-
-**Risk-first execution** — The planner prioritizes risky tasks first: architectural decisions, integration points, unknown unknowns. Easy wins come last. Fail fast on hard problems.
-
-**Explicit quality** — The steering files tell the AI what kind of codebase this is. Production code with audit trails, not a prototype. The AI follows the codebase patterns it sees — so keep your codebase clean before letting it loose.
-
-**HITL → AFK** — Start supervised, go autonomous once you trust the prompt. Use HITL for risky tasks and architectural decisions. Use AFK for well-defined implementation work.
-
-## Kiro folder layout after bootstrap
-
-```
-your-project/
-└── .kiro/
-    ├── steering/
-    │   ├── product.md
-    │   ├── tech.md
-    │   ├── structure.md
-    │   ├── coding-standards.md
-    │   ├── testing.md
-    │   ├── security.md
-    │   ├── mcp.md
-    │   ├── team.md
-    │   └── <pack-specific>.md
-    ├── specs/
-    │   └── <your-specs>/
-    ├── agents/
-    │   ├── planner.md
-    │   ├── verifier.md
-    │   ├── bugfix-investigator.md
-    │   ├── codebase-mapper.md
-    │   └── quick-change.md
-    ├── hooks/
-    │   ├── pre-task-quality.md
-    │   ├── post-task-verification.md
-    │   ├── on-spec-created.md
-    │   ├── on-file-save-guardrails.md
-    │   ├── session-summary.md
-    │   └── decision-tracker.md
-    └── state/
-        ├── STATE.md
-        ├── DECISIONS.md
-        ├── RISKS.md
-        ├── CHANGELOG_AI.md
-        └── init.sh
-```
-
-## Agents included
-
-| Agent | Purpose |
-|-------|---------|
-| **planner** | Transforms an idea into scope, risks, small tasks, dependencies, and done criteria |
-| **verifier** | Checks if delivery matches criteria, tests exist, no obvious regression, state updated |
-| **bugfix-investigator** | Forces reproduce → isolate root cause → describe current/expected → only then fix |
-| **codebase-mapper** | Analyzes existing codebase and produces a structural map for brownfield planning |
-| **quick-change** | Handles small, well-understood changes without the full planner flow |
-| **report-generator** | Produces delivery summaries, sprint reports, and project health reports from state files |
-
-## Hooks included
-
-| Hook | Trigger | What it does |
-|------|---------|--------------|
-| **on-spec-created** | Spec creation | Validates completeness, suggests missing sections |
-| **pre-task-quality** | Before task execution | Checks preconditions, flags risks |
-| **post-task-verification** | After task execution | Verifies expected files changed, tests pass, state updated |
-| **on-file-save-guardrails** | File save | Checks critical file changes against coding standards |
-| **session-summary** | End of session | Auto-generates STATE.md summary from git log, changelog, progress |
-| **decision-tracker** | After planning/decisions | Detects architectural decisions and records them in DECISIONS.md |
-
-## Available packs
-
-| Pack | Stack | Focus |
-|------|-------|-------|
-| `java-legacy` | Java 11+, layered architecture | Safe refactoring, migration, legacy patterns |
-| `spring-boot` | Spring Boot 3.x | REST APIs, configuration, testing |
-| `postgres` | PostgreSQL 15+ | Migrations with rollback, query review, schema safety |
-| `python-fastapi` | Python + FastAPI | API design, async patterns, typing |
-| `compliance` | Any stack | Audit trails, change management, regulatory (SOX, HIPAA, PCI-DSS, GDPR) |
-
-## Example walkthrough
-
-See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete walkthrough: bootstrapping a Java 17 / JSF / PostgreSQL project, mapping the codebase, planning a feature (email notifications with 4 tasks), and fixing a bug (discount rounding with regression test first).
-
-## Recommended conventions
-
-- Every bugfix starts with a reproduction step
-- Every migration includes a rollback strategy
-- Every task has explicit done criteria
-- State files are updated at the end of each session
-- Decisions are recorded with context and date
-- Skills are plain Markdown — anyone on the team can create or adjust them
-- One task = one atomic commit with a descriptive message
-- Completed specs are archived to `specs/archive/` for future reference
+See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete walkthrough.
 
 ## Roadmap
 
-### v0.1 — Foundation
-- [x] Bootstrap script
-- [x] Core steering pack (product, tech, structure, coding-standards, testing, security)
-- [x] Java legacy pack + PostgreSQL pack
-- [x] Planner, verifier, and bugfix-investigator agents
-- [x] Codebase-mapper and quick-change agents
-- [x] 4 core hooks
-- [x] Spec templates (feature + bugfix)
-- [x] State templates
-- [x] Ralph loop script (`specrail-ralph.sh`)
-- [x] Health checks before each iteration
-- [x] init.sh environment setup template
-- [x] Clean state rule and markdown tampering protection
-- [x] Example walkthrough (Java legacy)
+### v0.1 — Foundation ✅
+Core steering, subagents, hooks, spec templates, Ralph loop, health checks, example walkthrough.
 
-### v0.2 — Automation
-- [x] Auto-generation of STATE.md summaries (session-summary hook)
-- [x] Auto-update of DECISIONS.md (decision-tracker hook)
-- [x] Spring Boot, PostgreSQL, and FastAPI packs
-- [x] Release checklist templates
-- [x] Verification reports (verifier saves VERIFICATION.md)
-- [x] Pack-specific steering (bootstrap copies from `packs/<name>/steering/`)
+### v0.2 — Automation ✅
+Session summary hook, decision tracker, Spring Boot/PostgreSQL/FastAPI packs, release checklist, verification reports.
 
-### v0.3 — Team & Integration
-- [x] MCP integration (steering template with server configs per workflow)
-- [x] Report generation (report-generator agent)
-- [x] Team mode (spec ownership, parallel specs, branch strategy, PR conventions)
-- [x] Corporate packs (compliance pack with audit trails, regulatory awareness)
-- [x] Risk score per task (1-5 scoring in planner, AFK-safe vs HITL recommendation)
-- [x] Pack composition (`--pack spring-boot,postgres,compliance`)
-- [x] Shared steering (mcp.md, team.md copied for all packs)
+### v0.3 — Team & Integration ✅
+MCP integration, report generator, team mode, compliance pack, risk scoring, pack composition.
+
+### Next
+- [ ] Test all subagents in live Kiro environment
+- [ ] Validate hooks in Kiro hooks system
+- [ ] Validate Ralph loop with current kiro-cli release
+- [ ] First tagged release with compatibility declaration
+- [ ] Explore Kiro Powers format (POWER.md + dynamic activation)
 
 ## Contributing
 
-Contributions are welcome. Please open an issue first to discuss what you'd like to add.
+Contributions welcome. Please open an issue first to discuss what you'd like to add.
 
 ## License
 

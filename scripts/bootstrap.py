@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""SpecRail bootstrap — installs delivery kit into a Kiro project."""
+"""SpecRail bootstrap — installs delivery kit into a Kiro project.
+
+Modes:
+  lite  — 3 core steering + 2 agents (planner, verifier). Best for getting started.
+  full  — all core steering + all agents + hooks + state + specs. Full delivery kit.
+  add   — add specific components to an existing install.
+
+Examples:
+  bootstrap.py --pack java-legacy                          # lite install
+  bootstrap.py --pack spring-boot,postgres --mode full     # full install, combined packs
+  bootstrap.py --pack compliance --mode add                # add compliance overlay
+  bootstrap.py --list                                      # show available packs
+"""
 
 import argparse
 import shutil
@@ -10,73 +22,55 @@ SPECRAIL_ROOT = Path(__file__).resolve().parent.parent
 
 PACKS = {
     "java-legacy": {
-        "steering": ["product.md", "tech.md", "structure.md", "coding-standards.md",
-                      "testing.md", "security.md", "brownfield-java.md"],
+        "overlays": ["brownfield-java.md"],
         "description": "Java 11+, layered architecture, safe refactoring",
     },
     "spring-boot": {
-        "steering": ["product.md", "tech.md", "structure.md", "coding-standards.md",
-                      "testing.md", "security.md"],
-        "description": "Spring Boot REST APIs, configuration, testing",
+        "overlays": ["spring-boot.md"],
+        "description": "Spring Boot 3.x, REST APIs, sliced tests",
     },
     "postgres": {
-        "steering": ["product.md", "tech.md", "structure.md", "coding-standards.md",
-                      "testing.md", "security.md", "postgres.md"],
+        "overlays": ["postgres.md"],
         "description": "PostgreSQL migrations, query review, schema safety",
     },
     "python-fastapi": {
-        "steering": ["product.md", "tech.md", "structure.md", "coding-standards.md",
-                      "testing.md", "security.md"],
-        "description": "Python + FastAPI, async patterns, typing",
+        "overlays": ["fastapi.md"],
+        "description": "Python + FastAPI, async patterns, Pydantic v2",
     },
     "compliance": {
-        "steering": ["compliance.md", "regulatory.md"],
-        "description": "Audit trails, change management, regulatory awareness (SOX, HIPAA, PCI-DSS, GDPR)",
+        "overlays": ["compliance.md", "regulatory.md"],
+        "description": "Audit trails, change management, SOX/HIPAA/PCI-DSS/GDPR",
     },
 }
 
-# Shared steering files copied for all packs
-SHARED_STEERING = ["mcp.md", "team.md"]
+# Core steering: always copied
+CORE_STEERING_ALWAYS = ["product.md", "tech.md", "structure.md"]
+CORE_STEERING_AUTO = ["coding-standards.md", "testing.md", "security.md"]
 
-CORE_DIRS = {
-    "agents":  "agents",
-    "hooks":   "hooks",
-    "state":   "templates/state",
-    "specs":   "templates/specs",
-}
+# Agents
+LITE_AGENTS = ["planner.md", "verifier.md"]
+FULL_AGENTS = ["planner.md", "verifier.md", "bugfix-investigator.md",
+               "codebase-mapper.md", "quick-change.md", "report-generator.md"]
+
+
+def copy_file(src: Path, dst: Path, label: str):
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    if not dst.exists():
+        shutil.copy2(src, dst)
+        print(f"  + {label}")
+    else:
+        print(f"  ~ {label} (exists, skipped)")
 
 
 def copy_tree(src: Path, dst: Path):
-    """Copy directory contents, creating parents as needed."""
     for item in src.rglob("*"):
         if item.is_file():
             target = dst / item.relative_to(src)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if not target.exists():
-                shutil.copy2(item, target)
-                print(f"  + {target.relative_to(dst.parent.parent)}")
-            else:
-                print(f"  ~ {target.relative_to(dst.parent.parent)} (exists, skipped)")
+            label = str(target.relative_to(dst.parent.parent))
+            copy_file(item, target, label)
 
 
-def copy_steering(pack_name: str, steering_list: list, steering_dst: Path):
-    """Copy steering files from pack directory."""
-    steering_src = SPECRAIL_ROOT / "packs" / pack_name / "steering"
-    if not steering_src.is_dir():
-        steering_src = SPECRAIL_ROOT / "templates" / "steering"
-    for fname in steering_list:
-        src = steering_src / fname
-        dst = steering_dst / fname
-        if src.exists() and not dst.exists():
-            shutil.copy2(src, dst)
-            print(f"  + steering/{fname}")
-        elif dst.exists():
-            print(f"  ~ steering/{fname} (exists, skipped)")
-        else:
-            print(f"  ! steering/{fname} (not found in pack)")
-
-
-def bootstrap(project_dir: Path, pack_names: list):
+def bootstrap(project_dir: Path, pack_names: list, mode: str):
     for name in pack_names:
         if name not in PACKS:
             print(f"Unknown pack: {name}")
@@ -86,55 +80,112 @@ def bootstrap(project_dir: Path, pack_names: list):
     kiro_dir = project_dir / ".kiro"
     kiro_dir.mkdir(exist_ok=True)
     label = ", ".join(pack_names)
-    print(f"Bootstrapping [{label}] into {kiro_dir}\n")
+    print(f"SpecRail [{mode}] — packs: {label}\n")
 
     steering_dst = kiro_dir / "steering"
     steering_dst.mkdir(exist_ok=True)
+    core_src = SPECRAIL_ROOT / "core" / "steering"
 
-    # Shared steering (mcp, team)
-    print("[shared steering]")
-    shared_src = SPECRAIL_ROOT / "templates" / "steering"
-    for fname in SHARED_STEERING:
-        src = shared_src / fname
-        dst = steering_dst / fname
-        if src.exists() and not dst.exists():
-            shutil.copy2(src, dst)
-            print(f"  + steering/{fname}")
-        elif dst.exists():
-            print(f"  ~ steering/{fname} (exists, skipped)")
+    # Core steering
+    if mode == "add":
+        steering_files = []  # add mode: only overlays
+    elif mode == "lite":
+        steering_files = CORE_STEERING_ALWAYS
+    else:  # full
+        steering_files = CORE_STEERING_ALWAYS + CORE_STEERING_AUTO
 
-    # Pack-specific steering
+    if steering_files:
+        print("[core steering]")
+        for fname in steering_files:
+            copy_file(core_src / fname, steering_dst / fname, f"steering/{fname}")
+
+    # Shared steering (full only)
+    if mode == "full":
+        shared_src = SPECRAIL_ROOT / "templates" / "steering"
+        print("\n[shared steering]")
+        for fname in ["mcp.md", "team.md"]:
+            src = shared_src / fname
+            if src.exists():
+                copy_file(src, steering_dst / fname, f"steering/{fname}")
+
+    # Pack overlays
     for pack_name in pack_names:
         pack = PACKS[pack_name]
-        print(f"\n[steering: {pack_name}]")
-        copy_steering(pack_name, pack["steering"], steering_dst)
+        overlay_src = SPECRAIL_ROOT / "packs" / pack_name / "steering"
+        if pack["overlays"]:
+            print(f"\n[overlay: {pack_name}]")
+            for fname in pack["overlays"]:
+                src = overlay_src / fname
+                if src.exists():
+                    copy_file(src, steering_dst / fname, f"steering/{fname}")
+                else:
+                    print(f"  ! steering/{fname} (not found)")
 
-    # Agents, hooks, state, specs (once, shared across packs)
-    for dir_label, src_rel in CORE_DIRS.items():
-        src_dir = SPECRAIL_ROOT / src_rel
-        dst_dir = kiro_dir / dir_label
-        if src_dir.is_dir():
-            print(f"\n[{dir_label}]")
-            copy_tree(src_dir, dst_dir)
+    # Agents
+    if mode != "add":
+        agents = LITE_AGENTS if mode == "lite" else FULL_AGENTS
+        agents_src = SPECRAIL_ROOT / "agents"
+        agents_dst = kiro_dir / "agents"
+        print(f"\n[agents — {len(agents)}]")
+        for fname in agents:
+            copy_file(agents_src / fname, agents_dst / fname, f"agents/{fname}")
 
-    print(f"\nDone. Packs [{label}] installed into {kiro_dir}")
+    # Full mode: hooks, state, specs
+    if mode == "full":
+        for dir_label, src_rel in [("hooks", "hooks"), ("state", "templates/state"), ("specs", "templates/specs")]:
+            src_dir = SPECRAIL_ROOT / src_rel
+            dst_dir = kiro_dir / dir_label
+            if src_dir.is_dir():
+                print(f"\n[{dir_label}]")
+                copy_tree(src_dir, dst_dir)
+
+    # Lite mode: just the tasks template
+    if mode == "lite":
+        specs_src = SPECRAIL_ROOT / "templates" / "specs" / "feature"
+        specs_dst = kiro_dir / "specs" / "feature"
+        print("\n[specs — minimal]")
+        for fname in ["tasks.template.md"]:
+            src = specs_src / fname
+            if src.exists():
+                copy_file(src, specs_dst / fname, f"specs/feature/{fname}")
+
+    total = sum(1 for _ in kiro_dir.rglob("*") if _.is_file())
+    print(f"\nDone. {total} files in {kiro_dir}")
+    if mode == "lite":
+        print("Tip: run with --mode full for hooks, state files, and all agents.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SpecRail bootstrap for Kiro projects")
-    parser.add_argument("--pack", required=True,
-                        help="Pack(s) to install, comma-separated (e.g., spring-boot,postgres,compliance)")
+    parser = argparse.ArgumentParser(
+        description="SpecRail bootstrap for Kiro projects",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Examples:\n"
+               "  bootstrap.py --list\n"
+               "  bootstrap.py --pack java-legacy\n"
+               "  bootstrap.py --pack spring-boot,postgres --mode full\n"
+               "  bootstrap.py --pack compliance --mode add\n")
+    parser.add_argument("--pack", help="Pack(s) to install, comma-separated")
+    parser.add_argument("--mode", choices=["lite", "full", "add"], default="lite",
+                        help="Install mode (default: lite)")
     parser.add_argument("--project", default=".", help="Project root (default: current dir)")
     parser.add_argument("--list", action="store_true", help="List available packs")
     args = parser.parse_args()
 
     if args.list:
+        print("Available packs:\n")
         for name, info in PACKS.items():
             print(f"  {name:20s} {info['description']}")
+        print(f"\nModes:")
+        print(f"  lite   3 steering + 2 agents + tasks template ({sum(len(p['overlays']) for p in PACKS.values())} overlays available)")
+        print(f"  full   6 steering + 6 agents + hooks + state + specs")
+        print(f"  add    add pack overlays to existing install")
         return
 
+    if not args.pack:
+        parser.error("--pack is required (or use --list)")
+
     pack_names = [p.strip() for p in args.pack.split(",")]
-    bootstrap(Path(args.project).resolve(), pack_names)
+    bootstrap(Path(args.project).resolve(), pack_names, args.mode)
 
 
 if __name__ == "__main__":

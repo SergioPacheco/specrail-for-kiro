@@ -1,3 +1,8 @@
+---
+description: Brownfield Java patterns — safe refactoring, migration rules, legacy constraints
+inclusion: auto
+---
+
 # Brownfield Java Steering
 
 ## Context

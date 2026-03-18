@@ -1,3 +1,8 @@
+---
+description: Regulatory awareness — SOX, HIPAA, PCI-DSS, GDPR constraints
+inclusion: manual
+---
+
 # Compliance Steering — Regulatory Awareness
 
 This file helps AI agents understand regulatory constraints. It does NOT replace legal counsel — it ensures the AI doesn't accidentally violate common regulatory requirements.

@@ -1,6 +1,11 @@
+---
+description: MCP server configuration — how to connect external tools to SpecRail workflows
+inclusion: manual
+---
+
 # MCP Integration Steering
 
-SpecRail skills tell Kiro what to do. MCP servers give Kiro the tools to do it. This file documents how to connect MCP servers to your SpecRail workflow.
+SpecRail subagents tell Kiro what to do. MCP servers give Kiro the tools to do it. This file documents how to connect MCP servers to your SpecRail workflow.
 
 ## What MCP adds to SpecRail
 
@@ -72,16 +77,16 @@ MCP servers are configured in your Kiro project settings. Place the config in `.
 
 ## Rules for MCP + SpecRail
 
-- MCP servers provide data and actions — skills decide what to do with them
+- MCP servers provide data and actions — subagents decide what to do with them
 - Never let MCP access production databases from development workflows
 - Use read-only database connections for verification and investigation
 - Browser MCP is for testing, not for scraping or automation outside the project
 - Log all MCP interactions that modify external state (DB writes, deployments)
-- If an MCP server is unavailable, the skill should degrade gracefully (skip that verification step, note it in the report)
+- If an MCP server is unavailable, the subagent should degrade gracefully (skip that verification step, note it in the report)
 
-## How skills reference MCP
+## How subagents reference MCP
 
-Skills don't need to know MCP internals. They describe what they need:
+Subagents don't need to know MCP internals. They describe what they need:
 
 ```markdown
 ## Workflow
@@ -90,4 +95,4 @@ Skills don't need to know MCP internals. They describe what they need:
 3. Check the CI pipeline status for the latest commit
 ```
 
-If the corresponding MCP server is available, Kiro uses it. If not, the skill falls back to CLI commands or skips that step with a note.
+If the corresponding MCP server is available, Kiro uses it. If not, the subagent falls back to CLI commands or skips that step with a note.

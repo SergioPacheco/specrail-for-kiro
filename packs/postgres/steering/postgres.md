@@ -1,3 +1,8 @@
+---
+description: PostgreSQL patterns — zero-downtime migrations, query optimization, operational rules
+inclusion: auto
+---
+
 # PostgreSQL-Specific Steering
 
 ## Zero-downtime migrations

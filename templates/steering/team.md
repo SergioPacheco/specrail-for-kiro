@@ -1,3 +1,8 @@
+---
+description: Team conventions — spec ownership, parallel work, branch strategy, PR rules
+inclusion: manual
+---
+
 # Team Mode Steering
 
 Conventions for multiple people and/or AI agents working on the same project simultaneously.

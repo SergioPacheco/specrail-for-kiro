@@ -1,3 +1,8 @@
+---
+description: Audit trails, change management, approval workflows, separation of duties
+inclusion: manual
+---
+
 # Compliance Steering — Audit Trails
 
 Every change to production systems must be traceable: who changed what, when, why, and who approved it.
