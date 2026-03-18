@@ -195,9 +195,15 @@ See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete 
 - [x] Core steering pack (product, tech, structure, coding-standards, testing, security)
 - [x] Java legacy pack + PostgreSQL pack
 - [x] Planner, verifier, and bugfix-investigator agents
+- [x] Codebase-mapper and quick-change agents
 - [x] 4 core hooks
 - [x] Spec templates (feature + bugfix)
 - [x] State templates
+- [x] Ralph loop script (`specrail-ralph.sh`)
+- [x] Health checks before each iteration
+- [x] init.sh environment setup template
+- [x] Clean state rule and markdown tampering protection
+- [x] Example walkthrough (Java legacy)
 
 ### v0.2 — Automation
 - [ ] Auto-generation of STATE.md summaries
