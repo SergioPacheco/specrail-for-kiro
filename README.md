@@ -141,6 +141,28 @@ your-project/
 
 See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete walkthrough: bootstrapping a Java 17 / JSF / PostgreSQL project, mapping the codebase, planning a feature (email notifications with 4 tasks), and fixing a bug (discount rounding with regression test first).
 
+## Ralph mode (autonomous execution)
+
+SpecRail includes a [Ralph-style](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum) loop script that executes tasks autonomously. Instead of running each task manually, the loop picks the next uncompleted task, implements it, runs tests, commits, and moves on.
+
+```bash
+# Execute all tasks from a spec, max 10 iterations
+./scripts/specrail-ralph.sh order-email-notification
+
+# Limit to 5 iterations
+./scripts/specrail-ralph.sh order-email-notification 5
+```
+
+Each iteration:
+1. Reads `tasks.md` to find the next uncompleted task
+2. Implements that one task
+3. Runs feedback loops (tests, types, lint)
+4. Commits atomically
+5. Updates `PROGRESS.md` and `CHANGELOG_AI.md`
+6. Stops when all tasks are done or max iterations reached
+
+Start with HITL (human-in-the-loop) — watch the first few iterations. Once you trust the prompt, go AFK.
+
 ## Recommended conventions
 
 - Every bugfix starts with a reproduction step
