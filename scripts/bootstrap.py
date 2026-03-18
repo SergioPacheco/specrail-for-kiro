@@ -29,7 +29,14 @@ PACKS = {
                       "testing.md", "security.md"],
         "description": "Python + FastAPI, async patterns, typing",
     },
+    "compliance": {
+        "steering": ["compliance.md", "regulatory.md"],
+        "description": "Audit trails, change management, regulatory awareness (SOX, HIPAA, PCI-DSS, GDPR)",
+    },
 }
+
+# Shared steering files copied for all packs
+SHARED_STEERING = ["mcp.md", "team.md"]
 
 CORE_DIRS = {
     "agents":  "agents",
@@ -52,26 +59,12 @@ def copy_tree(src: Path, dst: Path):
                 print(f"  ~ {target.relative_to(dst.parent.parent)} (exists, skipped)")
 
 
-def bootstrap(project_dir: Path, pack_name: str):
-    pack = PACKS.get(pack_name)
-    if not pack:
-        print(f"Unknown pack: {pack_name}")
-        print(f"Available: {', '.join(PACKS)}")
-        sys.exit(1)
-
-    kiro_dir = project_dir / ".kiro"
-    kiro_dir.mkdir(exist_ok=True)
-    print(f"Bootstrapping '{pack_name}' into {kiro_dir}\n")
-
-    # Steering — from pack-specific directory
-    steering_dst = kiro_dir / "steering"
-    steering_dst.mkdir(exist_ok=True)
+def copy_steering(pack_name: str, steering_list: list, steering_dst: Path):
+    """Copy steering files from pack directory."""
     steering_src = SPECRAIL_ROOT / "packs" / pack_name / "steering"
     if not steering_src.is_dir():
-        # Fallback to templates/steering for packs without their own steering
         steering_src = SPECRAIL_ROOT / "templates" / "steering"
-    print("[steering]")
-    for fname in pack["steering"]:
+    for fname in steering_list:
         src = steering_src / fname
         dst = steering_dst / fname
         if src.exists() and not dst.exists():
@@ -82,20 +75,55 @@ def bootstrap(project_dir: Path, pack_name: str):
         else:
             print(f"  ! steering/{fname} (not found in pack)")
 
-    # Agents, hooks, state, specs
-    for label, src_rel in CORE_DIRS.items():
+
+def bootstrap(project_dir: Path, pack_names: list):
+    for name in pack_names:
+        if name not in PACKS:
+            print(f"Unknown pack: {name}")
+            print(f"Available: {', '.join(PACKS)}")
+            sys.exit(1)
+
+    kiro_dir = project_dir / ".kiro"
+    kiro_dir.mkdir(exist_ok=True)
+    label = ", ".join(pack_names)
+    print(f"Bootstrapping [{label}] into {kiro_dir}\n")
+
+    steering_dst = kiro_dir / "steering"
+    steering_dst.mkdir(exist_ok=True)
+
+    # Shared steering (mcp, team)
+    print("[shared steering]")
+    shared_src = SPECRAIL_ROOT / "templates" / "steering"
+    for fname in SHARED_STEERING:
+        src = shared_src / fname
+        dst = steering_dst / fname
+        if src.exists() and not dst.exists():
+            shutil.copy2(src, dst)
+            print(f"  + steering/{fname}")
+        elif dst.exists():
+            print(f"  ~ steering/{fname} (exists, skipped)")
+
+    # Pack-specific steering
+    for pack_name in pack_names:
+        pack = PACKS[pack_name]
+        print(f"\n[steering: {pack_name}]")
+        copy_steering(pack_name, pack["steering"], steering_dst)
+
+    # Agents, hooks, state, specs (once, shared across packs)
+    for dir_label, src_rel in CORE_DIRS.items():
         src_dir = SPECRAIL_ROOT / src_rel
-        dst_dir = kiro_dir / label
+        dst_dir = kiro_dir / dir_label
         if src_dir.is_dir():
-            print(f"\n[{label}]")
+            print(f"\n[{dir_label}]")
             copy_tree(src_dir, dst_dir)
 
-    print(f"\nDone. Pack '{pack_name}' installed into {kiro_dir}")
+    print(f"\nDone. Packs [{label}] installed into {kiro_dir}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="SpecRail bootstrap for Kiro projects")
-    parser.add_argument("--pack", required=True, choices=list(PACKS), help="Pack to install")
+    parser.add_argument("--pack", required=True,
+                        help="Pack(s) to install, comma-separated (e.g., spring-boot,postgres,compliance)")
     parser.add_argument("--project", default=".", help="Project root (default: current dir)")
     parser.add_argument("--list", action="store_true", help="List available packs")
     args = parser.parse_args()
@@ -105,7 +133,8 @@ def main():
             print(f"  {name:20s} {info['description']}")
         return
 
-    bootstrap(Path(args.project).resolve(), args.pack)
+    pack_names = [p.strip() for p in args.pack.split(",")]
+    bootstrap(Path(args.project).resolve(), pack_names)
 
 
 if __name__ == "__main__":

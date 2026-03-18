@@ -46,6 +46,23 @@ List risks: breaking changes, migration risks, performance concerns, security im
 
 Fail fast on hard problems. Save easy wins for later.
 
+**Risk score** — Assign a numeric risk score (1-5) to each task based on these factors:
+
+| Factor | +1 point each |
+|--------|---------------|
+| Touches shared/core code | Code used by multiple modules |
+| Database changes | Schema migration, data migration |
+| External integration | API calls, message queues, third-party services |
+| No existing tests | Area has low or no test coverage |
+| >3 files modified | Larger blast radius |
+
+Score interpretation:
+- 1-2: Low risk — safe for AFK (Ralph loop)
+- 3: Medium risk — AFK with careful verification
+- 4-5: High risk — HITL recommended, consider splitting
+
+Include the score in the task output: `- Risk: 3/5 (shared code, no tests)`
+
 ### Phase 3: Break into Ralph-ready tasks
 
 Each task must be executable in a single Ralph iteration — small enough to implement, test, and commit in one context window. Create ordered tasks where each has:

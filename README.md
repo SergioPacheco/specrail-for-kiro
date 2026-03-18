@@ -45,12 +45,15 @@ When you combine SpecRail skills with MCP integrations, Kiro can autonomously ex
 # Clone the repo
 git clone https://github.com/<your-org>/specrail-for-kiro.git
 
-# Bootstrap into your Kiro project
+# Bootstrap into your Kiro project (single pack)
 cd your-project
 python path/to/specrail-for-kiro/scripts/bootstrap.py --pack java-legacy
+
+# Or combine multiple packs
+python path/to/specrail-for-kiro/scripts/bootstrap.py --pack spring-boot,postgres,compliance
 ```
 
-The bootstrap script copies the selected steering files, spec templates, agents, hooks, and state files into your project's `.kiro/` directory.
+The bootstrap script copies the selected steering files, spec templates, agents, hooks, and state files into your project's `.kiro/` directory. Packs can be combined — use `spring-boot,postgres` to get both Spring Boot and PostgreSQL steering, or add `compliance` for enterprise audit trails.
 
 ## How it works
 
@@ -124,6 +127,8 @@ your-project/
     │   ├── coding-standards.md
     │   ├── testing.md
     │   ├── security.md
+    │   ├── mcp.md
+    │   ├── team.md
     │   └── <pack-specific>.md
     ├── specs/
     │   └── <your-specs>/
@@ -157,6 +162,7 @@ your-project/
 | **bugfix-investigator** | Forces reproduce → isolate root cause → describe current/expected → only then fix |
 | **codebase-mapper** | Analyzes existing codebase and produces a structural map for brownfield planning |
 | **quick-change** | Handles small, well-understood changes without the full planner flow |
+| **report-generator** | Produces delivery summaries, sprint reports, and project health reports from state files |
 
 ## Hooks included
 
@@ -174,9 +180,10 @@ your-project/
 | Pack | Stack | Focus |
 |------|-------|-------|
 | `java-legacy` | Java 11+, layered architecture | Safe refactoring, migration, legacy patterns |
-| `spring-boot` | Spring Boot | REST APIs, configuration, testing |
-| `postgres` | PostgreSQL | Migrations with rollback, query review, schema safety |
+| `spring-boot` | Spring Boot 3.x | REST APIs, configuration, testing |
+| `postgres` | PostgreSQL 15+ | Migrations with rollback, query review, schema safety |
 | `python-fastapi` | Python + FastAPI | API design, async patterns, typing |
+| `compliance` | Any stack | Audit trails, change management, regulatory (SOX, HIPAA, PCI-DSS, GDPR) |
 
 ## Example walkthrough
 
@@ -219,11 +226,13 @@ See [docs/examples/java-legacy.md](docs/examples/java-legacy.md) for a complete 
 - [x] Pack-specific steering (bootstrap copies from `packs/<name>/steering/`)
 
 ### v0.3 — Team & Integration
-- [ ] MCP integration
-- [ ] Report generation
-- [ ] Team mode
-- [ ] Corporate packs
-- [ ] Risk score per task
+- [x] MCP integration (steering template with server configs per workflow)
+- [x] Report generation (report-generator agent)
+- [x] Team mode (spec ownership, parallel specs, branch strategy, PR conventions)
+- [x] Corporate packs (compliance pack with audit trails, regulatory awareness)
+- [x] Risk score per task (1-5 scoring in planner, AFK-safe vs HITL recommendation)
+- [x] Pack composition (`--pack spring-boot,postgres,compliance`)
+- [x] Shared steering (mcp.md, team.md copied for all packs)
 
 ## Contributing
 
