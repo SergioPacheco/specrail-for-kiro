@@ -1,6 +1,6 @@
 # Example: Java Legacy Project
 
-A real walkthrough of using SpecRail on a brownfield Java enterprise system.
+A real walkthrough of using KiroRails on a brownfield Java enterprise system.
 
 ## The project
 
@@ -14,7 +14,7 @@ An internal order management system:
 
 ```bash
 cd order-management
-python path/to/specrail-for-kiro/scripts/bootstrap.py --pack java-legacy
+python path/to/kirorails-for-kiro/scripts/bootstrap.py --pack java-legacy
 ```
 
 Result:
@@ -197,7 +197,7 @@ Run one task at a time, watch, intervene if needed.
 
 **AFK mode** — let Ralph handle all 4 tasks:
 ```bash
-./scripts/specrail-ralph.sh order-email-notification 6
+./scripts/kirorails-ralph.sh order-email-notification 6
 ```
 
 Ralph runs up to 6 iterations. Each iteration:

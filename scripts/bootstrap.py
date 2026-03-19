@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SpecRail bootstrap — installs delivery kit into a Kiro project.
+"""KiroRails bootstrap — installs delivery kit into a Kiro project.
 
 Modes:
   lite  — 3 core steering + 2 agents (planner, verifier). Best for getting started.
@@ -18,7 +18,7 @@ import shutil
 import sys
 from pathlib import Path
 
-SPECRAIL_ROOT = Path(__file__).resolve().parent.parent
+KIRORAILS_ROOT = Path(__file__).resolve().parent.parent
 
 PACKS = {
     "java-legacy": {
@@ -80,11 +80,11 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
     kiro_dir = project_dir / ".kiro"
     kiro_dir.mkdir(exist_ok=True)
     label = ", ".join(pack_names)
-    print(f"SpecRail [{mode}] — packs: {label}\n")
+    print(f"KiroRails [{mode}] — packs: {label}\n")
 
     steering_dst = kiro_dir / "steering"
     steering_dst.mkdir(exist_ok=True)
-    core_src = SPECRAIL_ROOT / "core" / "steering"
+    core_src = KIRORAILS_ROOT / "core" / "steering"
 
     # Core steering
     if mode == "add":
@@ -101,7 +101,7 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
 
     # Shared steering (full only)
     if mode == "full":
-        shared_src = SPECRAIL_ROOT / "templates" / "steering"
+        shared_src = KIRORAILS_ROOT / "templates" / "steering"
         print("\n[shared steering]")
         for fname in ["mcp.md", "team.md"]:
             src = shared_src / fname
@@ -111,7 +111,7 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
     # Pack overlays
     for pack_name in pack_names:
         pack = PACKS[pack_name]
-        overlay_src = SPECRAIL_ROOT / "packs" / pack_name / "steering"
+        overlay_src = KIRORAILS_ROOT / "packs" / pack_name / "steering"
         if pack["overlays"]:
             print(f"\n[overlay: {pack_name}]")
             for fname in pack["overlays"]:
@@ -124,7 +124,7 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
     # Agents
     if mode != "add":
         agents = LITE_AGENTS if mode == "lite" else FULL_AGENTS
-        agents_src = SPECRAIL_ROOT / "agents"
+        agents_src = KIRORAILS_ROOT / "agents"
         agents_dst = kiro_dir / "agents"
         print(f"\n[agents — {len(agents)}]")
         for fname in agents:
@@ -133,7 +133,7 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
     # Full mode: hooks, state, specs
     if mode == "full":
         for dir_label, src_rel in [("hooks", "hooks"), ("state", "templates/state"), ("specs", "templates/specs")]:
-            src_dir = SPECRAIL_ROOT / src_rel
+            src_dir = KIRORAILS_ROOT / src_rel
             dst_dir = kiro_dir / dir_label
             if src_dir.is_dir():
                 print(f"\n[{dir_label}]")
@@ -141,7 +141,7 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
 
     # Lite mode: just the tasks template
     if mode == "lite":
-        specs_src = SPECRAIL_ROOT / "templates" / "specs" / "feature"
+        specs_src = KIRORAILS_ROOT / "templates" / "specs" / "feature"
         specs_dst = kiro_dir / "specs" / "feature"
         print("\n[specs — minimal]")
         for fname in ["tasks.template.md"]:
@@ -157,7 +157,7 @@ def bootstrap(project_dir: Path, pack_names: list, mode: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="SpecRail bootstrap for Kiro projects",
+        description="KiroRails bootstrap for Kiro projects",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="Examples:\n"
                "  bootstrap.py --list\n"

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# SpecRail pre-task hook — runs before starting a task.
+# KiroRails pre-task hook — runs before starting a task.
 # Checks: compilation passes, no uncommitted changes.
 set -euo pipefail
 
-CONF="${SPECRAIL_CONF:-.kiro/specrail.conf}"
+CONF="${KIRORAILS_CONF:-.kiro/kirorails.conf}"
 RED='\033[0;31m'; GREEN='\033[0;32m'; NC='\033[0m'
 
 read_conf() { grep "^$1=" "$CONF" 2>/dev/null | cut -d= -f2- | xargs; }
 
-echo "🛤️  SpecRail pre-task check"
+echo "🛤️  KiroRails pre-task check"
 echo "─────────────────────────────"
 
 # Check for uncommitted changes

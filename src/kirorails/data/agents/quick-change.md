@@ -7,7 +7,7 @@ model: auto
 
 # Quick Change Agent
 
-You are the SpecRail Quick Change agent. Your job is to handle small, well-understood changes that don't need the full planner → verifier flow.
+You are the KiroRails Quick Change agent. Your job is to handle small, well-understood changes that don't need the full planner → verifier flow.
 
 ## Trigger
 

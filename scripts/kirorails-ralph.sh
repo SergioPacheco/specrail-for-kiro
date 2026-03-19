@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# specrail-ralph.sh — Autonomous task execution loop (EXPERIMENTAL)
+# kirorails-ralph.sh — Autonomous task execution loop (EXPERIMENTAL)
 #
 # Runs kiro-cli in a loop, one task per iteration.
 # Each iteration: health check → pick task → implement → test → commit → update state.
@@ -8,11 +8,11 @@
 #     Test with --dry-run first. Start with HITL before going AFK.
 #
 # Usage:
-#   ./specrail-ralph.sh <spec-name> [max-iterations]
+#   ./kirorails-ralph.sh <spec-name> [max-iterations]
 #
 # Examples:
-#   ./specrail-ralph.sh order-email-notification        # default 10 iterations
-#   ./specrail-ralph.sh order-email-notification 5      # max 5 iterations
+#   ./kirorails-ralph.sh order-email-notification        # default 10 iterations
+#   ./kirorails-ralph.sh order-email-notification 5      # max 5 iterations
 
 set -e
 
@@ -34,7 +34,7 @@ if [ ! -f "${SPEC_DIR}/tasks.md" ]; then
   exit 1
 fi
 
-echo "=== SpecRail Ralph Loop (experimental) ==="
+echo "=== KiroRails Ralph Loop (experimental) ==="
 echo "Spec: ${SPEC_NAME}"
 echo "Max iterations: ${MAX_ITERATIONS}"
 echo ""
@@ -62,7 +62,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     fi
   fi
 
-  PROMPT="You are executing tasks from a SpecRail spec.
+  PROMPT="You are executing tasks from a KiroRails spec.
 
 Get your bearings:
 1. Read ${PROGRESS_FILE} — what previous iterations did
@@ -74,7 +74,7 @@ Environment health: ${HEALTH_STATUS}
 
 Instructions:
 - If health is BROKEN: fix the build first. Do NOT start a new task.
-- If ALL tasks are complete, output exactly: SPECRAIL_COMPLETE
+- If ALL tasks are complete, output exactly: KIRORAILS_COMPLETE
 - Otherwise, implement ONLY the next uncompleted task.
 - Run feedback loops. Fix failures before committing.
 - Commit with the message specified in the task.
@@ -96,7 +96,7 @@ Rules:
   echo "$RESULT"
 
   # Check completion
-  if echo "$RESULT" | grep -q "SPECRAIL_COMPLETE"; then
+  if echo "$RESULT" | grep -q "KIRORAILS_COMPLETE"; then
     echo ""
     echo "=== All tasks complete! ==="
     echo "Spec: ${SPEC_NAME}"

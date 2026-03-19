@@ -1,4 +1,4 @@
-"""Sprint and backlog management for SpecRail."""
+"""Sprint and backlog management for KiroRails."""
 
 from pathlib import Path
 from datetime import date

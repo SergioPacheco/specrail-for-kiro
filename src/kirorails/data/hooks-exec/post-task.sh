@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# SpecRail post-task hook — runs after completing a task.
+# KiroRails post-task hook — runs after completing a task.
 # Checks: compile, test, lint. All must pass before commit.
 set -euo pipefail
 
-CONF="${SPECRAIL_CONF:-.kiro/specrail.conf}"
+CONF="${KIRORAILS_CONF:-.kiro/kirorails.conf}"
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 FAILED=0
 
@@ -21,7 +21,7 @@ run_check() {
     fi
 }
 
-echo "🛤️  SpecRail post-task verification"
+echo "🛤️  KiroRails post-task verification"
 echo "─────────────────────────────────────"
 
 run_check "Compile" "$(read_conf compile)"

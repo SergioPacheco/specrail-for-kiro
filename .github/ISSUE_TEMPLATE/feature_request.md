@@ -16,4 +16,4 @@ assignees: ''
 <!-- Other approaches you thought about -->
 
 **Pack / component**
-<!-- Which part of SpecRail this relates to -->
+<!-- Which part of KiroRails this relates to -->

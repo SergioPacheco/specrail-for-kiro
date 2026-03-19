@@ -1,4 +1,4 @@
-"""SpecRail installer — copies delivery kit files into a Kiro project."""
+"""KiroRails installer — copies delivery kit files into a Kiro project."""
 
 import shutil
 from pathlib import Path
@@ -49,7 +49,7 @@ def _copy(src: Path, dst: Path, label: str) -> bool:
 
 
 def install(project_dir: Path, packs: list[str], mode: str = "lite"):
-    """Install SpecRail into a project directory."""
+    """Install KiroRails into a project directory."""
     for p in packs:
         if p not in BLUEPRINTS:
             print(f"❌ Unknown blueprint: {p}")
@@ -61,7 +61,7 @@ def install(project_dir: Path, packs: list[str], mode: str = "lite"):
     steering.mkdir(parents=True, exist_ok=True)
     core_src = DATA_ROOT / "core" / "steering"
 
-    print(f"\n🛤️  SpecRail [{mode}] — blueprints: {', '.join(packs)}\n")
+    print(f"\n🛤️  KiroRails [{mode}] — blueprints: {', '.join(packs)}\n")
 
     # ── Steering (guardrails) ───────────────────────────────────────────
     if mode != "add":
@@ -92,7 +92,7 @@ def install(project_dir: Path, packs: list[str], mode: str = "lite"):
     if mode != "add":
         hooks_exec = DATA_ROOT / "hooks-exec"
         print("\n[executable hooks]")
-        _copy(hooks_exec / "specrail.conf", kiro / "specrail.conf", "specrail.conf")
+        _copy(hooks_exec / "kirorails.conf", kiro / "kirorails.conf", "kirorails.conf")
         for sh in ["pre-task.sh", "post-task.sh"]:
             dst = kiro / "hooks-exec" / sh
             _copy(hooks_exec / sh, dst, f"hooks-exec/{sh}")
@@ -123,6 +123,6 @@ def install(project_dir: Path, packs: list[str], mode: str = "lite"):
     if mode == "lite":
         print("💡 Run with --mode full for extra agents, hooks, and templates.")
     print('\n🚀 Next steps:')
-    print('  specrail sprint init           # create backlog')
-    print('  specrail sprint new sprint-1   # create first sprint')
-    print('  specrail quick "task desc"     # quick task without planning')
+    print('  kirorails sprint init           # create backlog')
+    print('  kirorails sprint new sprint-1   # create first sprint')
+    print('  kirorails quick "task desc"     # quick task without planning')

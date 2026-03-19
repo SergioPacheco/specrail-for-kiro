@@ -1,13 +1,13 @@
 ---
-description: MCP server configuration — how to connect external tools to SpecRail workflows
+description: MCP server configuration — how to connect external tools to KiroRails workflows
 inclusion: manual
 ---
 
 # MCP Integration Steering
 
-SpecRail subagents tell Kiro what to do. MCP servers give Kiro the tools to do it. This file documents how to connect MCP servers to your SpecRail workflow.
+KiroRails subagents tell Kiro what to do. MCP servers give Kiro the tools to do it. This file documents how to connect MCP servers to your KiroRails workflow.
 
-## What MCP adds to SpecRail
+## What MCP adds to KiroRails
 
 Without MCP, Kiro can read files, run commands, and write code. With MCP, Kiro can also:
 - Query your database directly (verify migrations, check data)
@@ -75,7 +75,7 @@ Use with: team mode (PR creation, issue tracking), report-generator (link to PRs
 
 MCP servers are configured in your Kiro project settings. Place the config in `.kiro/settings/mcp.json` or your global Kiro config.
 
-## Rules for MCP + SpecRail
+## Rules for MCP + KiroRails
 
 - MCP servers provide data and actions — subagents decide what to do with them
 - Never let MCP access production databases from development workflows

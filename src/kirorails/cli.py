@@ -1,16 +1,16 @@
-"""SpecRail CLI — Professional-grade delivery for AI-assisted development."""
+"""KiroRails CLI — Professional-grade delivery for AI-assisted development."""
 
 import click
 from pathlib import Path
 from datetime import date
-from specrail.installer import BLUEPRINTS, install
-from specrail.sprint import init_backlog, new_sprint, read_sprint_status, read_backlog
+from kirorails.installer import BLUEPRINTS, install
+from kirorails.sprint import init_backlog, new_sprint, read_sprint_status, read_backlog
 
 
 @click.group()
 @click.version_option()
 def cli():
-    """🛤️  SpecRail — The Tech Lead your AI agent needs."""
+    """🛤️  KiroRails — The Tech Lead your AI agent needs."""
 
 
 # ── init ────────────────────────────────────────────────────────────────────
@@ -21,14 +21,14 @@ def cli():
 @click.option("--project", default=".", help="Project root directory")
 @click.option("--list", "list_packs", is_flag=True, help="List available stack blueprints")
 def init(pack, mode, project, list_packs):
-    """Install SpecRail into your project.
+    """Install KiroRails into your project.
 
     \b
     Examples:
-      specrail init                          # interactive
-      specrail init --pack java-legacy       # direct
-      specrail init --pack spring-boot,postgres --mode full
-      specrail init --list
+      kirorails init                          # interactive
+      kirorails init --pack java-legacy       # direct
+      kirorails init --pack spring-boot,postgres --mode full
+      kirorails init --list
     """
     if list_packs:
         click.echo("\n📦 Available Stack Blueprints:\n")
@@ -38,7 +38,7 @@ def init(pack, mode, project, list_packs):
         return
 
     if not pack:
-        click.echo("\n🛤️  SpecRail Setup\n")
+        click.echo("\n🛤️  KiroRails Setup\n")
         click.echo("Available stack blueprints:")
         names = list(BLUEPRINTS.keys())
         for i, (name, info) in enumerate(BLUEPRINTS.items(), 1):
@@ -71,7 +71,7 @@ def init(pack, mode, project, list_packs):
 def map():
     """Trigger codebase mapping (generates CODEBASE.md)."""
     if not Path(".kiro/agents/codebase-mapper.md").exists():
-        click.echo("❌ codebase-mapper not installed. Run: specrail init --mode full")
+        click.echo("❌ codebase-mapper not installed. Run: kirorails init --mode full")
         raise SystemExit(1)
     click.echo("""
 🗺️  Tell Kiro:
@@ -85,7 +85,7 @@ def map():
 def plan(feature):
     """Trigger the planner specialist persona."""
     if not Path(".kiro/agents/planner.md").exists():
-        click.echo("❌ Planner not installed. Run: specrail init")
+        click.echo("❌ Planner not installed. Run: kirorails init")
         raise SystemExit(1)
     prompt = f'Plan the feature: "{feature}"' if feature else "Plan the next feature"
     click.echo(f"""
@@ -99,7 +99,7 @@ def plan(feature):
 def verify():
     """Trigger the Truth Loop (verification)."""
     if not Path(".kiro/agents/verifier.md").exists():
-        click.echo("❌ Verifier not installed. Run: specrail init")
+        click.echo("❌ Verifier not installed. Run: kirorails init")
         raise SystemExit(1)
     click.echo("""
 🔍 Tell Kiro:
@@ -116,9 +116,9 @@ def sprint():
 
     \b
     Examples:
-      specrail sprint init                    # create backlog.md
-      specrail sprint new sprint-1-foundation # create sprint dir
-      specrail sprint list                    # show all sprints
+      kirorails sprint init                    # create backlog.md
+      kirorails sprint new sprint-1-foundation # create sprint dir
+      kirorails sprint list                    # show all sprints
     """
 
 
@@ -149,7 +149,7 @@ def sprint_list(project):
     """Show all sprints and their progress."""
     sprints = read_sprint_status(Path(project).resolve())
     if not sprints:
-        click.echo("No sprints found. Run: specrail sprint init")
+        click.echo("No sprints found. Run: kirorails sprint init")
         return
 
     click.echo("\n🏃 Sprints\n")
@@ -175,20 +175,20 @@ def quick(description, sprint_name, project):
 
     \b
     Examples:
-      specrail quick "Add CRUD for Product entity"
-      specrail quick "Fix date format in reports" --sprint sprint-3
+      kirorails quick "Add CRUD for Product entity"
+      kirorails quick "Fix date format in reports" --sprint sprint-3
     """
     p = Path(project).resolve()
     kiro = p / ".kiro"
 
     if not kiro.exists():
-        click.echo("⚠️  SpecRail not initialized. Run: specrail init")
+        click.echo("⚠️  KiroRails not initialized. Run: kirorails init")
         click.echo("   Creating quick task anyway...\n")
 
     if sprint_name:
         target = kiro / "specs" / sprint_name / "tasks.md"
         if not target.exists():
-            click.echo(f"❌ Sprint not found: {sprint_name}. Run: specrail sprint new {sprint_name}")
+            click.echo(f"❌ Sprint not found: {sprint_name}. Run: kirorails sprint new {sprint_name}")
             raise SystemExit(1)
         # Append task to existing sprint
         content = target.read_text()
@@ -239,7 +239,7 @@ def status(project):
     backlog = read_backlog(p)
     sprints = read_sprint_status(p)
 
-    click.echo("\n🛤️  SpecRail Status Dashboard")
+    click.echo("\n🛤️  KiroRails Status Dashboard")
     click.echo("═══════════════════════════════════════\n")
 
     # Backlog summary
@@ -265,19 +265,19 @@ def status(project):
         click.echo()
 
     # Hooks config
-    conf = p / ".kiro" / "specrail.conf"
+    conf = p / ".kiro" / "kirorails.conf"
     if conf.exists():
         click.echo(f"🔧 Hooks: configured ({conf})")
     else:
-        click.echo(f"🔧 Hooks: not configured (run specrail init --mode full)")
+        click.echo(f"🔧 Hooks: not configured (run kirorails init --mode full)")
 
     click.echo("\n═══════════════════════════════════════\n")
 
     if not backlog and not sprints:
         click.echo("No data yet. Try:")
-        click.echo("  specrail sprint init          # create backlog")
-        click.echo("  specrail sprint new sprint-1   # create first sprint")
-        click.echo("  specrail quick 'task desc'     # quick task without planning\n")
+        click.echo("  kirorails sprint init          # create backlog")
+        click.echo("  kirorails sprint new sprint-1   # create first sprint")
+        click.echo("  kirorails quick 'task desc'     # quick task without planning\n")
 
 
 def _progress_bar(done: int, total: int, width: int = 15) -> str:

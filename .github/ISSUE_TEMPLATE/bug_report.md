@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a problem with SpecRail templates, agents, or hooks
+about: Report a problem with KiroRails templates, agents, or hooks
 title: "[BUG] "
 labels: bug
 assignees: ''

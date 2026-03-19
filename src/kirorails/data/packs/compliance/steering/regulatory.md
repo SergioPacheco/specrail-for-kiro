@@ -54,7 +54,7 @@ Applies to: systems processing data of EU residents
 - Data processing must have a legal basis (consent, contract, legitimate interest)
 - Data breach notification within 72 hours — have a process ready
 
-## How this affects SpecRail workflows
+## How this affects KiroRails workflows
 
 - Planner: flag tasks that touch regulated data as high-risk
 - Verifier: check that audit logging is present for regulated operations

@@ -1,16 +1,16 @@
-# 🛤️ SpecRail for Kiro
+# 🛤️ KiroRails for Kiro
 
 **The only Kiro kit designed for complex brownfield projects.**
 
-SpecRail is the "Tech Lead" your AI agent needs. It wraps [Kiro](https://kiro.dev) with structured planning, expert guardrails, and automated verification loops — so your AI writes production code, not prototypes.
+KiroRails is the "Tech Lead" your AI agent needs. It wraps [Kiro](https://kiro.dev) with structured planning, expert guardrails, and automated verification loops — so your AI writes production code, not prototypes.
 
-> *"GSD builds. BMAD organizes. SpecRail guarantees."*
+> *"GSD builds. BMAD organizes. KiroRails guarantees."*
 
 ---
 
-## Why SpecRail?
+## Why KiroRails?
 
-| Problem | SpecRail Solution |
+| Problem | KiroRails Solution |
 |---------|-------------------|
 | AI ignores your coding standards | **Expert Guardrails** enforce your rules on every interaction |
 | AI breaks existing code | **Stack Blueprints** teach it your legacy patterns before it touches anything |
@@ -21,7 +21,7 @@ SpecRail is the "Tech Lead" your AI agent needs. It wraps [Kiro](https://kiro.de
 
 ### Safe for Brownfield
 
-Specialized blueprints for Java Legacy, Spring Boot, PostgreSQL, and compliance-heavy codebases. SpecRail maps your existing architecture before planning any changes.
+Specialized blueprints for Java Legacy, Spring Boot, PostgreSQL, and compliance-heavy codebases. KiroRails maps your existing architecture before planning any changes.
 
 ### Truth Loop
 
@@ -36,16 +36,16 @@ Break complex features into verified micro-tasks. Each task = one context window
 ## Quick Start
 
 ```bash
-pip install specrail
+pip install kirorails
 
 cd your-project
-specrail init
+kirorails init
 ```
 
 The interactive setup asks for your stack and installs everything:
 
 ```
-🛤️  SpecRail Setup
+🛤️  KiroRails Setup
 
 Available stack blueprints:
   1. java-legacy          Java 11+, layered architecture, safe refactoring
@@ -61,28 +61,28 @@ Install mode [lite]: full
 Or skip the prompts:
 
 ```bash
-specrail init --pack java-legacy,spring-boot --mode full
+kirorails init --pack java-legacy,spring-boot --mode full
 ```
 
 Then set up your project:
 
 ```bash
-specrail sprint init                    # create backlog for requirements
-specrail sprint new sprint-1-foundation # create first sprint
-specrail quick "Add CRUD for Product"   # quick task, no planning overhead
-specrail status                         # see progress dashboard
+kirorails sprint init                    # create backlog for requirements
+kirorails sprint new sprint-1-foundation # create first sprint
+kirorails quick "Add CRUD for Product"   # quick task, no planning overhead
+kirorails status                         # see progress dashboard
 ```
 
 ---
 
 ## See It In Action
 
-Here's what happens when SpecRail catches a problem before it reaches production:
+Here's what happens when KiroRails catches a problem before it reaches production:
 
 ```
 $ .kiro/hooks-exec/post-task.sh
 
-🛤️  SpecRail post-task verification
+🛤️  KiroRails post-task verification
 ─────────────────────────────────────
   Compile... ✓
   Tests  ... ✓
@@ -91,14 +91,14 @@ $ .kiro/hooks-exec/post-task.sh
 ✗ 1 check(s) failed — do NOT commit.
 ```
 
-The AI wrote code that passed tests but violated your checkstyle rules. Without SpecRail, that commit goes through. With SpecRail, it's blocked — the AI must fix the lint issue before proceeding.
+The AI wrote code that passed tests but violated your checkstyle rules. Without KiroRails, that commit goes through. With KiroRails, it's blocked — the AI must fix the lint issue before proceeding.
 
 After the fix:
 
 ```
 $ .kiro/hooks-exec/post-task.sh
 
-🛤️  SpecRail post-task verification
+🛤️  KiroRails post-task verification
 ─────────────────────────────────────
   Compile... ✓
   Tests  ... ✓
@@ -113,13 +113,13 @@ That's the Truth Loop in action: **no commit without green feedback loops.**
 
 ## Sprint & Backlog Management
 
-For projects with many requirements, SpecRail organizes work into sprints:
+For projects with many requirements, KiroRails organizes work into sprints:
 
 ```bash
-specrail sprint init                     # creates backlog.md
-specrail sprint new sprint-1-foundation  # creates sprint dir with tasks.md
-specrail sprint new sprint-2-crud        # another sprint
-specrail sprint list                     # show all sprints + progress
+kirorails sprint init                     # creates backlog.md
+kirorails sprint new sprint-1-foundation  # creates sprint dir with tasks.md
+kirorails sprint new sprint-2-crud        # another sprint
+kirorails sprint list                     # show all sprints + progress
 ```
 
 **backlog.md** tracks all requirements:
@@ -139,8 +139,8 @@ Each sprint gets its own `tasks.md` — no rigid requirements→design→tasks f
 Not everything needs full planning. CRUDs, config changes, simple fixes:
 
 ```bash
-specrail quick "Add CRUD for Product entity"           # standalone quick task
-specrail quick "Fix date format" --sprint sprint-2     # add to existing sprint
+kirorails quick "Add CRUD for Product entity"           # standalone quick task
+kirorails quick "Fix date format" --sprint sprint-2     # add to existing sprint
 ```
 
 Generates just a `tasks.md` — straight to work.
@@ -153,15 +153,15 @@ Process becomes command. Use these in Kiro chat or from your terminal:
 
 | Command | What it does |
 |---------|-------------|
-| `specrail:map` | Triggers the codebase mapper → generates `CODEBASE.md` |
-| `specrail:plan` | Triggers the planner → generates risk-scored `TASKS.md` |
-| `specrail:verify` | Triggers the Truth Loop → produces `VERIFICATION.md` |
+| `kirorails:map` | Triggers the codebase mapper → generates `CODEBASE.md` |
+| `kirorails:plan` | Triggers the planner → generates risk-scored `TASKS.md` |
+| `kirorails:verify` | Triggers the Truth Loop → produces `VERIFICATION.md` |
 
 From terminal:
 ```bash
-specrail map        # check prerequisites, get the Kiro prompt
-specrail plan       # same for planning
-specrail verify     # same for verification
+kirorails map        # check prerequisites, get the Kiro prompt
+kirorails plan       # same for planning
+kirorails verify     # same for verification
 ```
 
 ---
@@ -171,11 +171,11 @@ specrail verify     # same for verification
 See everything at a glance:
 
 ```bash
-specrail status
+kirorails status
 ```
 
 ```
-🛤️  SpecRail Status Dashboard
+🛤️  KiroRails Status Dashboard
 ═══════════════════════════════════════
 
 📋 Backlog: 63 requirements
@@ -189,7 +189,7 @@ specrail status
    🔲 sprint-4-payments             ░░░░░░░░░░░░░░░ 0/6
    ...
 
-🔧 Hooks: configured (.kiro/specrail.conf)
+🔧 Hooks: configured (.kiro/kirorails.conf)
 
 ═══════════════════════════════════════
 ```
@@ -198,9 +198,9 @@ specrail status
 
 ## Executable Hooks
 
-Real automation, not just documentation. SpecRail installs bash scripts that run your actual build tools:
+Real automation, not just documentation. KiroRails installs bash scripts that run your actual build tools:
 ```bash
-# .kiro/specrail.conf — edit for your project
+# .kiro/kirorails.conf — edit for your project
 compile=./mvnw compile -q
 test=./mvnw test -q
 lint=./mvnw checkstyle:check -q
@@ -221,7 +221,7 @@ security=
 # ✓ All checks passed — safe to commit.
 ```
 
-The hooks read `specrail.conf` so they work with any build tool — Maven, Gradle, npm, cargo, whatever.
+The hooks read `kirorails.conf` so they work with any build tool — Maven, Gradle, npm, cargo, whatever.
 
 ---
 
@@ -243,7 +243,7 @@ The hooks read `specrail.conf` so they work with any build tool — Maven, Gradl
 ├── hooks-exec/                  ← Real Automation
 │   ├── pre-task.sh              check clean tree + compile
 │   └── post-task.sh             compile + test + lint gate
-├── specrail.conf                ← hook config (edit for your build tool)
+├── kirorails.conf                ← hook config (edit for your build tool)
 └── specs/
     └── feature/
         └── tasks.template.md    task breakdown template
@@ -301,14 +301,14 @@ Pre-configured opinions for your stack. Composable — use multiple:
 | `compliance` | Audit trails, SOX/HIPAA/PCI-DSS/GDPR awareness |
 
 ```bash
-specrail init --pack spring-boot,postgres,compliance --mode full
+kirorails init --pack spring-boot,postgres,compliance --mode full
 ```
 
 ---
 
 ## Truth Loop — How Verification Works
 
-The Truth Loop is what makes SpecRail different. Every task goes through:
+The Truth Loop is what makes KiroRails different. Every task goes through:
 
 ```
 Task completed
@@ -337,7 +337,7 @@ Start with HITL. Move to AFK once you trust the guardrails.
 ### Ralph Loop (experimental)
 
 ```bash
-./scripts/specrail-ralph.sh order-email-notification 5
+./scripts/kirorails-ralph.sh order-email-notification 5
 ```
 
 ⚠️ Experimental. Uses `kiro-cli chat --no-interactive`. Test with HITL first.
@@ -347,15 +347,15 @@ Start with HITL. Move to AFK once you trust the guardrails.
 ## CLI Reference
 
 ```
-specrail init [--pack NAME] [--mode lite|full|add]   Install SpecRail
-specrail sprint init                                  Create backlog.md
-specrail sprint new <name>                            Create sprint directory
-specrail sprint list                                  Show sprint progress
-specrail quick "<description>" [--sprint NAME]        Quick task (no planning)
-specrail status                                       Progress dashboard
-specrail map                                          Trigger codebase mapping
-specrail plan [feature]                               Trigger planner
-specrail verify                                       Trigger Truth Loop
+kirorails init [--pack NAME] [--mode lite|full|add]   Install KiroRails
+kirorails sprint init                                  Create backlog.md
+kirorails sprint new <name>                            Create sprint directory
+kirorails sprint list                                  Show sprint progress
+kirorails quick "<description>" [--sprint NAME]        Quick task (no planning)
+kirorails status                                       Progress dashboard
+kirorails map                                          Trigger codebase mapping
+kirorails plan [feature]                               Trigger planner
+kirorails verify                                       Trigger Truth Loop
 ```
 
 ---
@@ -401,7 +401,7 @@ The key insight: AI code quality degrades as context grows (context rot). By kee
 
 | Component | Status |
 |-----------|--------|
-| CLI install (`pip install specrail`) | ✅ Tested |
+| CLI install (`pip install kirorails`) | ✅ Tested |
 | Expert Guardrails (steering files) | ✅ Tested |
 | Sprint/Backlog management | ✅ Tested |
 | Quick Tasks | ✅ Tested |
