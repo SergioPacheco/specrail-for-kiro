@@ -1,0 +1,128 @@
+"""SpecRail installer — copies delivery kit files into a Kiro project."""
+
+import shutil
+from pathlib import Path
+
+DATA_ROOT = Path(__file__).parent / "data"
+
+BLUEPRINTS = {
+    "java-legacy": {
+        "overlays": ["brownfield-java.md"],
+        "desc": "Java 11+, layered architecture, safe refactoring",
+    },
+    "spring-boot": {
+        "overlays": ["spring-boot.md"],
+        "desc": "Spring Boot 3.x, REST APIs, sliced tests",
+    },
+    "postgres": {
+        "overlays": ["postgres.md"],
+        "desc": "PostgreSQL migrations, query review, schema safety",
+    },
+    "python-fastapi": {
+        "overlays": ["fastapi.md"],
+        "desc": "Python + FastAPI, async patterns, Pydantic v2",
+    },
+    "compliance": {
+        "overlays": ["compliance.md", "regulatory.md"],
+        "desc": "Audit trails, SOX/HIPAA/PCI-DSS/GDPR",
+    },
+}
+
+# Default: the proven essentials
+CORE_STEERING = ["product.md", "tech.md", "structure.md", "coding-standards.md"]
+DEFAULT_AGENTS = ["planner.md", "verifier.md"]
+
+# Full adds these
+EXTRA_STEERING = ["testing.md", "security.md"]
+EXTRA_AGENTS = ["bugfix-investigator.md", "codebase-mapper.md",
+                "quick-change.md", "report-generator.md"]
+
+
+def _copy(src: Path, dst: Path, label: str) -> bool:
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    if dst.exists():
+        print(f"  ~ {label} (exists)")
+        return False
+    shutil.copy2(src, dst)
+    print(f"  ✓ {label}")
+    return True
+
+
+def install(project_dir: Path, packs: list[str], mode: str = "lite"):
+    """Install SpecRail into a project directory."""
+    for p in packs:
+        if p not in BLUEPRINTS:
+            print(f"❌ Unknown blueprint: {p}")
+            print(f"   Available: {', '.join(BLUEPRINTS)}")
+            raise SystemExit(1)
+
+    kiro = project_dir / ".kiro"
+    steering = kiro / "steering"
+    steering.mkdir(parents=True, exist_ok=True)
+    core_src = DATA_ROOT / "core" / "steering"
+
+    print(f"\n🛤️  SpecRail [{mode}] — blueprints: {', '.join(packs)}\n")
+
+    # ── Steering (guardrails) ───────────────────────────────────────────
+    if mode != "add":
+        files = CORE_STEERING + (EXTRA_STEERING if mode == "full" else [])
+        print("[expert guardrails]")
+        for f in files:
+            _copy(core_src / f, steering / f, f"steering/{f}")
+
+    # ── Blueprint overlays ──────────────────────────────────────────────
+    for name in packs:
+        overlay_src = DATA_ROOT / "packs" / name / "steering"
+        print(f"\n[blueprint: {name}]")
+        for f in BLUEPRINTS[name]["overlays"]:
+            src = overlay_src / f
+            if src.exists():
+                _copy(src, steering / f, f"steering/{f}")
+            else:
+                print(f"  ✗ steering/{f} (not found)")
+
+    # ── Agents ──────────────────────────────────────────────────────────
+    if mode != "add":
+        agents = DEFAULT_AGENTS + (EXTRA_AGENTS if mode == "full" else [])
+        print(f"\n[specialist personas — {len(agents)}]")
+        for f in agents:
+            _copy(DATA_ROOT / "agents" / f, kiro / "agents" / f, f"agents/{f}")
+
+    # ── Executable hooks + config (always — this is the real value) ────
+    if mode != "add":
+        hooks_exec = DATA_ROOT / "hooks-exec"
+        print("\n[executable hooks]")
+        _copy(hooks_exec / "specrail.conf", kiro / "specrail.conf", "specrail.conf")
+        for sh in ["pre-task.sh", "post-task.sh"]:
+            dst = kiro / "hooks-exec" / sh
+            _copy(hooks_exec / sh, dst, f"hooks-exec/{sh}")
+            if dst.exists():
+                dst.chmod(0o755)
+
+    # ── Tasks template (always) ─────────────────────────────────────────
+    if mode != "add":
+        specs_src = DATA_ROOT / "templates" / "specs" / "feature"
+        print("\n[templates]")
+        _copy(specs_src / "tasks.template.md", kiro / "specs" / "feature" / "tasks.template.md",
+              "specs/feature/tasks.template.md")
+        if mode == "full":
+            _copy(specs_src / "design.template.md", kiro / "specs" / "feature" / "design.template.md",
+                  "specs/feature/design.template.md")
+
+    # ── Markdown hooks (full only — for when Kiro supports them) ───────
+    if mode == "full":
+        hooks_src = DATA_ROOT / "hooks"
+        if hooks_src.is_dir():
+            print("\n[markdown hooks]")
+            for f in sorted(hooks_src.rglob("*.md")):
+                target = kiro / "hooks" / f.relative_to(hooks_src)
+                _copy(f, target, f"hooks/{f.name}")
+
+    total = sum(1 for _ in kiro.rglob("*") if _.is_file())
+    print(f"\n✅ Done. {total} files in {kiro}")
+    if mode == "lite":
+        print("💡 Run with --mode full for extra agents, hooks, and templates.")
+    print('\n🚀 Next steps:')
+    print('  specrail sprint init           # create backlog')
+    print('  specrail sprint new sprint-1   # create first sprint')
+    print('  specrail quick "task desc"     # quick task without planning')
