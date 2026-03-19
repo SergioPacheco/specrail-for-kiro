@@ -204,7 +204,7 @@ def quick(description, sprint_name, project):
         # Create standalone quick task
         quick_dir = kiro / "specs" / "quick"
         quick_dir.mkdir(parents=True, exist_ok=True)
-        slug = description.lower().replace(" ", "-")[:40]
+        slug = _slugify(description)
         tasks_file = quick_dir / f"{slug}.md"
         tasks_file.write_text(f"""# ⚡ Quick Task
 
@@ -269,7 +269,7 @@ def status(project):
     if conf.exists():
         click.echo(f"🔧 Hooks: configured ({conf})")
     else:
-        click.echo(f"🔧 Hooks: not configured (run kirorails init --mode full)")
+        click.echo("🔧 Hooks: not configured (run kirorails init)")
 
     click.echo("\n═══════════════════════════════════════\n")
 
@@ -285,3 +285,12 @@ def _progress_bar(done: int, total: int, width: int = 15) -> str:
         return "░" * width
     filled = int(width * done / total)
     return "█" * filled + "░" * (width - filled)
+
+
+def _slugify(text: str) -> str:
+    """Convert text to a clean filename slug."""
+    import unicodedata, re
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    text = re.sub(r"[^\w\s-]", "", text.lower())
+    text = re.sub(r"[-\s]+", "-", text).strip("-")
+    return text[:50]
