@@ -1,4 +1,5 @@
 """Allow running kirorails as: python -m kirorails"""
 from kirorails.cli import cli
 
-cli()
+if __name__ == "__main__":
+    cli()

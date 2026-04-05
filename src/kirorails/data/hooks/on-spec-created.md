@@ -3,6 +3,9 @@ description: Validate spec completeness when a new spec is created or modified
 event: on_file_save
 ---
 
+> ⚠️ **NOT ACTIVE YET** — This is a markdown hook for future Kiro native hook support.
+> Currently, use the bash hooks in `.kiro/hooks-exec/` instead.
+
 ## Conditions
 
 - The saved file is inside `.kiro/specs/` directory

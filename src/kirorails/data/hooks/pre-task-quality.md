@@ -3,6 +3,9 @@ description: Check preconditions before starting a spec task
 event: on_task_start
 ---
 
+> ⚠️ **NOT ACTIVE YET** — This is a markdown hook for future Kiro native hook support.
+> Currently, use the bash hooks in `.kiro/hooks-exec/` instead.
+
 ## Conditions
 
 - A task from a spec in `.kiro/specs/` is about to be executed

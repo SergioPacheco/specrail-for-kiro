@@ -3,6 +3,9 @@ description: Auto-update STATE.md with session summary at end of work
 event: manual
 ---
 
+> ⚠️ **NOT ACTIVE YET** — This is a markdown hook for future Kiro native hook support.
+> Currently, use the bash hooks in `.kiro/hooks-exec/` instead.
+
 # Session Summary Hook
 
 ## Conditions

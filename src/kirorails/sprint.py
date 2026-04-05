@@ -88,8 +88,8 @@ def new_sprint(name: str, project: Path = None):
 
 ```bash
 # Run after every task — do NOT commit if any fail
-./mvnw compile
-./mvnw test
+# Commands configured in .kiro/kirorails.conf
+.kiro/hooks-exec/post-task.sh
 ```
 
 ## Retrospective
@@ -107,9 +107,10 @@ def read_sprint_status(project: Path = None) -> list[dict]:
     if not specs.exists():
         return []
 
+    skip = {"feature", "quick", "archive"}
     sprints = []
     for d in sorted(specs.iterdir()):
-        if not d.is_dir():
+        if not d.is_dir() or d.name in skip:
             continue
         tasks_file = d / "tasks.md"
         if not tasks_file.exists():

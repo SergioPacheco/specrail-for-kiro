@@ -3,6 +3,9 @@ description: Detect and record architectural decisions in DECISIONS.md
 event: manual
 ---
 
+> ⚠️ **NOT ACTIVE YET** — This is a markdown hook for future Kiro native hook support.
+> Currently, use the bash hooks in `.kiro/hooks-exec/` instead.
+
 # Decision Tracker Hook
 
 ## Conditions

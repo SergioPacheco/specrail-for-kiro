@@ -30,7 +30,7 @@ BLUEPRINTS = {
 
 # Default: the proven essentials
 CORE_STEERING = ["product.md", "tech.md", "structure.md", "coding-standards.md"]
-DEFAULT_AGENTS = ["planner.md", "verifier.md"]
+DEFAULT_AGENTS = ["planner.md", "verifier.md", "clarifier.md", "analyzer.md"]
 
 # Full adds these
 EXTRA_STEERING = ["testing.md", "security.md"]
@@ -108,6 +108,24 @@ def install(project_dir: Path, packs: list[str], mode: str = "lite"):
         if mode == "full":
             _copy(specs_src / "design.template.md", kiro / "specs" / "feature" / "design.template.md",
                   "specs/feature/design.template.md")
+            bugfix_src = DATA_ROOT / "templates" / "specs" / "bugfix"
+            bugfix_tmpl = bugfix_src / "bugfix.template.md"
+            if bugfix_tmpl.exists():
+                _copy(bugfix_tmpl, kiro / "specs" / "bugfix" / "bugfix.template.md",
+                      "specs/bugfix/bugfix.template.md")
+
+    # ── State directory (always — agents need it) ──────────────────────
+    if mode != "add":
+        state = kiro / "state"
+        state.mkdir(parents=True, exist_ok=True)
+        print("\n[state files]")
+        for sf in ["STATE.md", "CHANGELOG_AI.md", "DECISIONS.md", "RISKS.md"]:
+            target = state / sf
+            if not target.exists():
+                target.write_text(f"# {sf.replace('.md', '').replace('_', ' ')}\n\n<!-- Append-only. Updated by agents during execution. -->\n")
+                print(f"  ✓ state/{sf}")
+            else:
+                print(f"  ~ state/{sf} (exists)")
 
     # ── Markdown hooks (full only — for when Kiro supports them) ───────
     if mode == "full":

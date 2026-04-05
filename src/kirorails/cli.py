@@ -1,5 +1,7 @@
 """KiroRails CLI — Professional-grade delivery for AI-assisted development."""
 
+import unicodedata
+import re
 import click
 from pathlib import Path
 from datetime import date
@@ -68,23 +70,27 @@ def init(pack, mode, project, list_packs):
 # ── map / plan / verify ────────────────────────────────────────────────────
 
 @cli.command()
-def map():
+@click.option("--project", default=".", help="Project root directory")
+def map(project):
     """Trigger codebase mapping (generates CODEBASE.md)."""
-    if not Path(".kiro/agents/codebase-mapper.md").exists():
+    kiro = Path(project).resolve() / ".kiro"
+    if not (kiro / "agents" / "codebase-mapper.md").exists():
         click.echo("❌ codebase-mapper not installed. Run: kirorails init --mode full")
         raise SystemExit(1)
     click.echo("""
 🗺️  Tell Kiro:
   "Map this codebase using the codebase-mapper agent.
-   Save the result to .kiro/specs/CODEBASE.md"
+   Save the result to .kiro/state/CODEBASE.md"
 """)
 
 
 @cli.command()
 @click.argument("feature", required=False)
-def plan(feature):
+@click.option("--project", default=".", help="Project root directory")
+def plan(feature, project):
     """Trigger the planner specialist persona."""
-    if not Path(".kiro/agents/planner.md").exists():
+    kiro = Path(project).resolve() / ".kiro"
+    if not (kiro / "agents" / "planner.md").exists():
         click.echo("❌ Planner not installed. Run: kirorails init")
         raise SystemExit(1)
     prompt = f'Plan the feature: "{feature}"' if feature else "Plan the next feature"
@@ -96,15 +102,69 @@ def plan(feature):
 
 
 @cli.command()
-def verify():
+@click.option("--project", default=".", help="Project root directory")
+def verify(project):
     """Trigger the Truth Loop (verification)."""
-    if not Path(".kiro/agents/verifier.md").exists():
+    kiro = Path(project).resolve() / ".kiro"
+    if not (kiro / "agents" / "verifier.md").exists():
         click.echo("❌ Verifier not installed. Run: kirorails init")
         raise SystemExit(1)
     click.echo("""
 🔍 Tell Kiro:
   "Verify the current work using the verifier agent.
    Check all done criteria, run feedback loops, produce VERIFICATION.md"
+""")
+
+
+@cli.command()
+@click.argument("feature", required=False)
+@click.option("--project", default=".", help="Project root directory")
+def clarify(feature, project):
+    """Clarify a feature before planning — eliminate ambiguity.
+
+    \b
+    Run BEFORE kirorails plan. Produces CLARIFICATIONS.md.
+
+    Examples:
+      kirorails clarify "user authentication"
+      kirorails clarify
+    """
+    kiro = Path(project).resolve() / ".kiro"
+    if not (kiro / "agents" / "clarifier.md").exists():
+        click.echo("❌ Clarifier not installed. Run: kirorails init")
+        raise SystemExit(1)
+    target = f'the feature: "{feature}"' if feature else "the current feature or requirement"
+    click.echo(f"""
+❓ Tell Kiro:
+  "Clarify {target} using the clarifier agent.
+   Ask structured questions, record decisions in CLARIFICATIONS.md.
+   Use default assumptions when I say 'use your judgment'."
+""")
+
+
+@cli.command()
+@click.argument("feature", required=False)
+@click.option("--project", default=".", help="Project root directory")
+def analyze(feature, project):
+    """Analyze specs and tasks for consistency before implementation.
+
+    \b
+    Run AFTER kirorails plan, BEFORE implementation. Produces ANALYSIS.md.
+
+    Examples:
+      kirorails analyze "user-auth"
+      kirorails analyze
+    """
+    kiro = Path(project).resolve() / ".kiro"
+    if not (kiro / "agents" / "analyzer.md").exists():
+        click.echo("❌ Analyzer not installed. Run: kirorails init")
+        raise SystemExit(1)
+    target = f'the feature: "{feature}"' if feature else "the current sprint or feature"
+    click.echo(f"""
+🔬 Tell Kiro:
+  "Analyze {target} using the analyzer agent.
+   Check requirement coverage, task consistency, feasibility.
+   Produce ANALYSIS.md with verdict: READY / READY WITH WARNINGS / NOT READY."
 """)
 
 
@@ -222,11 +282,87 @@ def quick(description, sprint_name, project):
 
 ```bash
 # Run after task — do NOT commit if any fail
-./mvnw compile
-./mvnw test
+# Commands configured in .kiro/kirorails.conf
+.kiro/hooks-exec/post-task.sh
 ```
 """)
         click.echo(f"✅ Quick task created: .kiro/specs/quick/{slug}.md")
+
+
+# ── doctor ───────────────────────────────────────────────────────────────────
+
+@cli.command()
+@click.option("--project", default=".", help="Project root directory")
+def doctor(project):
+    """Validate KiroRails installation health."""
+    p = Path(project).resolve()
+    kiro = p / ".kiro"
+    ok = 0
+    warn = 0
+    fail = 0
+
+    click.echo("\n🩺 KiroRails Doctor\n")
+
+    def check(label, passed, is_warn=False):
+        nonlocal ok, warn, fail
+        if passed:
+            click.echo(f"  ✅ {label}")
+            ok += 1
+        elif is_warn:
+            click.echo(f"  ⚠️  {label}")
+            warn += 1
+        else:
+            click.echo(f"  ❌ {label}")
+            fail += 1
+
+    # Core structure
+    check(".kiro/ directory exists", kiro.is_dir())
+    check("kirorails.conf exists", (kiro / "kirorails.conf").is_file())
+
+    # Conf validity
+    conf = kiro / "kirorails.conf"
+    if conf.is_file():
+        lines = [l for l in conf.read_text().splitlines() if "=" in l and not l.strip().startswith("#")]
+        has_compile = any(l.startswith("compile=") and l.split("=", 1)[1].strip() for l in lines)
+        has_test = any(l.startswith("test=") and l.split("=", 1)[1].strip() for l in lines)
+        check("kirorails.conf has compile command", has_compile, is_warn=True)
+        check("kirorails.conf has test command", has_test, is_warn=True)
+
+    # Agents
+    agents_dir = kiro / "agents"
+    for agent in ["planner.md", "verifier.md", "clarifier.md", "analyzer.md"]:
+        check(f"agents/{agent}", (agents_dir / agent).is_file())
+
+    # Hooks
+    for hook in ["pre-task.sh", "post-task.sh"]:
+        hp = kiro / "hooks-exec" / hook
+        exists = hp.is_file()
+        check(f"hooks-exec/{hook} exists", exists)
+        if exists:
+            import os
+            check(f"hooks-exec/{hook} is executable", os.access(hp, os.X_OK), is_warn=True)
+
+    # State
+    state = kiro / "state"
+    check("state/ directory exists", state.is_dir())
+    if state.is_dir():
+        for sf in ["STATE.md", "CHANGELOG_AI.md", "DECISIONS.md", "RISKS.md"]:
+            check(f"state/{sf}", (state / sf).is_file(), is_warn=True)
+
+    # Steering
+    steering = kiro / "steering"
+    for sf in ["product.md", "tech.md", "coding-standards.md"]:
+        check(f"steering/{sf}", (steering / sf).is_file())
+
+    click.echo(f"\n{'─' * 40}")
+    click.echo(f"  ✅ {ok} passed  ⚠️  {warn} warnings  ❌ {fail} failed")
+    if fail == 0 and warn == 0:
+        click.echo("  🎉 Installation is healthy!")
+    elif fail == 0:
+        click.echo("  👍 Installation works, but has warnings.")
+    else:
+        click.echo("  🔧 Fix the failures above, then run doctor again.")
+    click.echo()
 
 
 # ── status ──────────────────────────────────────────────────────────────────
@@ -289,7 +425,6 @@ def _progress_bar(done: int, total: int, width: int = 15) -> str:
 
 def _slugify(text: str) -> str:
     """Convert text to a clean filename slug."""
-    import unicodedata, re
     text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
     text = re.sub(r"[^\w\s-]", "", text.lower())
     text = re.sub(r"[-\s]+", "-", text).strip("-")

@@ -3,6 +3,9 @@ description: Check critical file changes against coding and security standards
 event: on_file_save
 ---
 
+> ⚠️ **NOT ACTIVE YET** — This is a markdown hook for future Kiro native hook support.
+> Currently, use the bash hooks in `.kiro/hooks-exec/` instead.
+
 ## Conditions
 
 - The saved file matches any of these paths:

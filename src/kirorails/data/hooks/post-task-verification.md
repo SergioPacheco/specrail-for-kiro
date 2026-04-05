@@ -3,6 +3,9 @@ description: Verify task completion after execution
 event: on_task_complete
 ---
 
+> ⚠️ **NOT ACTIVE YET** — This is a markdown hook for future Kiro native hook support.
+> Currently, use the bash hooks in `.kiro/hooks-exec/` instead.
+
 ## Conditions
 
 - A task from a spec in `.kiro/specs/` has just been completed
