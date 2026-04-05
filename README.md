@@ -72,15 +72,41 @@ The system is built on six pillars:
 
 ## Quick Start
 
+### Option 1: curl (no dependencies)
+
+```bash
+# Install core files
+curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash
+
+# With a stack blueprint
+curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash -s -- --pack java-legacy
+
+# Multiple blueprints
+curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash -s -- --pack spring-boot,postgres
+```
+
+Installs all steering files, agents, hooks, templates, and state files directly from GitHub. No Python, no Node.js required.
+
+> For the full CLI (`check-phantom`, sprint management, skill learning), also run `pip install kirorails`.
+
+### Option 2: pip (full CLI)
+
 ```bash
 pip install kirorails
-
 cd your-project
-kirorails init
+kirorails init --pack java-legacy
 kirorails doctor    # verify installation health
 ```
 
-The interactive setup asks for your stack and installs everything:
+### Option 3: Kiro Power (one-click in Kiro IDE)
+
+1. Open Kiro → Powers panel → **Add power from GitHub**
+2. Enter: `https://github.com/SergioPacheco/KiroRails`
+3. Done — activates automatically when you mention delivery, planning, or brownfield keywords
+
+---
+
+The interactive setup (pip only) asks for your stack:
 
 ```
 🛤️  KiroRails Setup
@@ -93,12 +119,6 @@ Available stack blueprints:
   5. compliance           Audit trails, SOX/HIPAA/PCI-DSS/GDPR
 
 Which blueprint(s)? 1,2
-```
-
-Or skip the prompts:
-
-```bash
-kirorails init --pack java-legacy,spring-boot
 ```
 
 Then set up your project:
