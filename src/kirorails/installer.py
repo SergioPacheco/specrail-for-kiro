@@ -29,8 +29,8 @@ BLUEPRINTS = {
 }
 
 # Default: the proven essentials
-CORE_STEERING = ["product.md", "tech.md", "structure.md", "coding-standards.md"]
-DEFAULT_AGENTS = ["planner.md", "verifier.md", "clarifier.md", "analyzer.md"]
+CORE_STEERING = ["product.md", "tech.md", "structure.md", "coding-standards.md", "skills.md"]
+DEFAULT_AGENTS = ["planner.md", "verifier.md", "clarifier.md", "analyzer.md", "learner.md"]
 
 # Full adds these
 EXTRA_STEERING = ["testing.md", "security.md"]
@@ -127,14 +127,34 @@ def install(project_dir: Path, packs: list[str], mode: str = "lite"):
             else:
                 print(f"  ~ state/{sf} (exists)")
 
-    # ── Markdown hooks (full only — for when Kiro supports them) ───────
+    # ── Skills directory (always — for custom patterns) ────────────────
+    if mode != "add":
+        skills_dir = kiro / "skills"
+        skills_dir.mkdir(parents=True, exist_ok=True)
+        tmpl_src = DATA_ROOT / "skills" / "_template"
+        tmpl_dst = skills_dir / "_template"
+        if tmpl_src.is_dir() and not tmpl_dst.exists():
+            shutil.copytree(tmpl_src, tmpl_dst)
+            print(f"  ✓ skills/_template/SKILL.md")
+        elif tmpl_dst.exists():
+            print(f"  ~ skills/_template/ (exists)")
+
+    # ── Kiro-native hooks (JSON — always) ──────────────────────────────
+    if mode != "add":
+        hooks_src = DATA_ROOT / "hooks-kiro"
+        if hooks_src.is_dir():
+            print("\n[kiro hooks]")
+            for f in sorted(hooks_src.glob("*.json")):
+                _copy(f, kiro / "hooks" / f.name, f"hooks/{f.name}")
+
+    # ── Legacy markdown hooks (full only — reference only) ────────────
     if mode == "full":
         hooks_src = DATA_ROOT / "hooks"
         if hooks_src.is_dir():
-            print("\n[markdown hooks]")
+            print("\n[legacy markdown hooks — reference only]")
             for f in sorted(hooks_src.rglob("*.md")):
-                target = kiro / "hooks" / f.relative_to(hooks_src)
-                _copy(f, target, f"hooks/{f.name}")
+                target = kiro / "hooks-reference" / f.relative_to(hooks_src)
+                _copy(f, target, f"hooks-reference/{f.name}")
 
     total = sum(1 for _ in kiro.rglob("*") if _.is_file())
     print(f"\n✅ Done. {total} files in {kiro}")

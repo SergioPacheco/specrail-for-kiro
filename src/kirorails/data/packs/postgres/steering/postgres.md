@@ -1,6 +1,7 @@
 ---
+inclusion: fileMatch
+fileMatchPattern: ["**/*.sql", "**/migration*/**", "**/flyway/**", "**/alembic/**"]
 description: PostgreSQL patterns — zero-downtime migrations, query optimization, operational rules
-inclusion: auto
 ---
 
 # PostgreSQL-Specific Steering

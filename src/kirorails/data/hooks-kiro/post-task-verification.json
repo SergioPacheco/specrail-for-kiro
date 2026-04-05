@@ -1,0 +1,8 @@
+{
+  "title": "KiroRails Post-Task Verification",
+  "description": "Run compile, test, and lint checks after completing a spec task. Blocks commit if any fail.",
+  "event": "Post Task Execution",
+  "action": "Run Command",
+  "command": ".kiro/hooks-exec/post-task.sh",
+  "enabled": true
+}

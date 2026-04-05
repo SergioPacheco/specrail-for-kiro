@@ -1,6 +1,7 @@
 ---
+inclusion: fileMatch
+fileMatchPattern: ["**/*.java", "**/pom.xml", "**/build.gradle", "**/application*.yml", "**/application*.properties"]
 description: Spring Boot 3.x specific patterns and conventions
-inclusion: auto
 ---
 
 # Spring Boot Overlay

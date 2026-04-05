@@ -21,7 +21,7 @@ KiroRails is a Python CLI that installs structured markdown files and bash scrip
 
 It does NOT write application code. It provides the structure and verification for AI to do so safely.
 
-The system is built on five pillars:
+The system is built on six pillars:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -31,23 +31,24 @@ The system is built on five pillars:
 │  │   GUARDRAILS │  │   PERSONAS   │  │       TRUTH LOOP         │  │
 │  │              │  │              │  │                          │  │
 │  │  steering/   │  │  agents/     │  │  pre-task.sh → implement │  │
-│  │  product.md  │  │  planner.md  │  │  → post-task.sh → verify │  │
-│  │  tech.md     │  │  verifier.md │  │  → commit or fix & retry │  │
-│  │  coding-*.md │  │  mapper.md   │  │                          │  │
-│  │  blueprints  │  │  bugfix.md   │  │  Nothing committed       │  │
-│  │              │  │              │  │  without green loops.     │  │
+│  │  product.md  │  │  clarifier   │  │  → post-task.sh → verify │  │
+│  │  tech.md     │  │  planner     │  │  → phantom detection     │  │
+│  │  coding-*.md │  │  analyzer    │  │  → commit or fix & retry │  │
+│  │  skills.md   │  │  verifier    │  │                          │  │
+│  │  blueprints  │  │  learner     │  │  Nothing committed       │  │
+│  │              │  │  + 4 more    │  │  without green loops.    │  │
 │  └──────────────┘  └──────────────┘  └──────────────────────────┘  │
 │                                                                     │
 │  ┌──────────────────────────┐  ┌────────────────────────────────┐  │
-│  │     EXECUTABLE HOOKS     │  │      SPRINT MANAGEMENT         │  │
+│  │    CUSTOM SKILLS         │  │      SPRINT MANAGEMENT         │  │
 │  │                          │  │                                │  │
-│  │  kirorails.conf          │  │  backlog.md → sprints → tasks  │  │
-│  │  compile=./mvnw compile  │  │  quick tasks (no planning)    │  │
-│  │  test=./mvnw test        │  │  progress dashboard           │  │
-│  │  lint=./mvnw checkstyle  │  │  status tracking via emoji    │  │
+│  │  .kiro/skills/           │  │  backlog.md → sprints → tasks  │  │
+│  │  Agent Skills standard   │  │  quick tasks (no planning)    │  │
+│  │  auto-inject on match    │  │  progress dashboard           │  │
+│  │  learn from past specs   │  │  status tracking via emoji    │  │
 │  │                          │  │                                │  │
-│  │  Works with any build    │  │  Markdown is the database.    │  │
-│  │  tool. No lock-in.       │  │  No external dependencies.    │  │
+│  │  Team knowledge that     │  │  Markdown is the database.    │  │
+│  │  compounds over time.    │  │  No external dependencies.    │  │
 │  └──────────────────────────┘  └────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -60,8 +61,10 @@ The system is built on five pillars:
 |---------|-------------------|
 | AI ignores your coding standards | **Expert Guardrails** enforce your rules on every interaction |
 | AI breaks existing code | **Stack Blueprints** teach it your legacy patterns before it touches anything |
-| No way to know if AI work is correct | **Truth Loop** verifies every task against done criteria + feedback loops |
+| No way to know if AI work is correct | **Truth Loop** verifies every task — including phantom completion detection |
+| Requirements are vague | **Deep Interview** uses Socratic questioning with clarity scoring before planning |
 | Complex features become a mess | **Specialist Personas** break work into atomic, verified micro-tasks |
+| Same patterns reimplemented every time | **Custom Skills** auto-inject learned patterns when triggers match |
 | Project has dozens of requirements | **Sprint/Backlog** tracking organizes work into iterations |
 | CRUDs don't need full planning | **Quick Tasks** skip requirements→design, go straight to tasks |
 
@@ -74,6 +77,7 @@ pip install kirorails
 
 cd your-project
 kirorails init
+kirorails doctor    # verify installation health
 ```
 
 The interactive setup asks for your stack and installs everything:
@@ -109,21 +113,47 @@ kirorails status                         # see progress dashboard
 
 ---
 
-## The Five Pillars
+## The Delivery Workflow
+
+KiroRails provides a structured workflow from idea to verified delivery:
+
+```
+clarify → plan → analyze → implement → verify → learn
+```
+
+| Step | Command | What happens |
+|------|---------|-------------|
+| 1. Clarify | `kirorails clarify "feature"` | Deep Interview — Socratic questioning, clarity score, hidden assumptions |
+| 2. Plan | `kirorails plan "feature"` | Break into risk-scored atomic tasks, define done criteria |
+| 3. Analyze | `kirorails analyze "feature"` | Pre-implementation consistency check — coverage, ordering, feasibility |
+| 4. Implement | Ralph Loop or manual | AI implements one task at a time, guided by steering + skills |
+| 5. Verify | `kirorails verify` | Truth Loop — feedback loops, phantom detection, steering compliance |
+| 6. Learn | `kirorails learn` | Extract reusable patterns from verified specs into skills |
+
+Steps 1 and 3 are optional but recommended. Step 6 builds institutional knowledge over time.
+
+---
+
+## The Six Pillars
 
 ### 1. Expert Guardrails
 
-Steering files in `.kiro/steering/` that Kiro loads automatically as context. They define what the AI can and cannot do:
+Steering files in `.kiro/steering/` that Kiro loads automatically as context. Uses Kiro's native inclusion modes:
 
-| Guardrail | Loaded | Purpose |
-|-----------|--------|---------|
-| product.md, tech.md, structure.md | always | Core project context |
-| coding-standards.md | auto | Feedback loops, commit rules, quality |
-| testing.md, security.md | auto (full) | Test and security standards |
-| Stack blueprints (brownfield-java.md, etc.) | auto | Stack-specific rules and patterns |
-| compliance.md, regulatory.md | manual | SOX/HIPAA/PCI-DSS/GDPR awareness |
+| Guardrail | Inclusion Mode | Purpose |
+|-----------|---------------|---------|
+| product.md, tech.md, structure.md | `always` | Core project context |
+| coding-standards.md | `auto` | Feedback loops, commit rules, quality |
+| skills.md | `always` | Custom skills system — auto-injection rules |
+| testing.md, security.md | `auto` (full) | Test and security standards |
+| Stack blueprints (brownfield-java.md, etc.) | `fileMatch` | Stack-specific rules — loads only for matching files |
+| compliance.md, regulatory.md | `manual` | SOX/HIPAA/PCI-DSS/GDPR awareness |
 
-These are templates with sensible defaults. You customize them for your project.
+Stack blueprints use `fileMatch` so they only load when you're working on relevant files:
+- `brownfield-java.md` → activates for `**/*.java`, `**/pom.xml`
+- `postgres.md` → activates for `**/*.sql`, `**/migration*/**`
+- `spring-boot.md` → activates for `**/*.java`, `**/application*.yml`
+- `fastapi.md` → activates for `**/*.py`, `**/pyproject.toml`
 
 ### 2. Specialist Personas
 
@@ -131,10 +161,11 @@ AI agents in `.kiro/agents/` with specific expertise:
 
 | Persona | Mode | What it does |
 |---------|------|-------------|
-| **Clarifier** | lite | Pre-planning clarification — eliminates ambiguity, produces `CLARIFICATIONS.md` |
+| **Clarifier** | lite | Deep Interview — Socratic clarification with clarity scoring (0-100), hidden assumption exposure |
 | **Planner** | lite | Breaks features into risk-scored atomic tasks (1-5 risk scale), orders risk-first, defines done criteria per task |
 | **Analyzer** | lite | Pre-implementation consistency check — validates coverage, ordering, feasibility, produces `ANALYSIS.md` |
 | **Verifier** | lite | Runs the Truth Loop — checks done criteria, feedback loops, regressions, phantom completions. Produces `VERIFICATION.md` |
+| **Learner** | lite | Extracts reusable patterns from verified specs into portable skill files |
 | **Bug Hunter** | full | Reproduce → root cause → fix. Never skips steps |
 | **Codebase Mapper** | full | Analyzes brownfield architecture before planning changes |
 | **Quick Change** | full | Small changes without full planning flow |
@@ -149,31 +180,75 @@ Task completed
   → Run feedback loops (compile, test, lint)
   → Check done criteria
   → Check for regressions
+  → Phantom completion detection (👻)
   → Verify state files updated
   → Check steering compliance
   → Produce VERIFICATION.md
   → Verdict: ✅ PASS | ⚠️ PASS WITH NOTES | ❌ FAIL
 ```
 
-Here's what it looks like in practice:
+**Phantom completion detection** catches tasks marked done with no real implementation:
+
+| Verdict | Meaning |
+|---------|---------|
+| ✅ Real | Files changed, tests present, done criteria verifiable |
+| ⚠️ Suspicious | Files changed but no tests, or trivial changes only |
+| 👻 Phantom | Marked done but no corresponding code changes found |
+
+A single 👻 Phantom = automatic FAIL. No more silent partial completions.
+
+### 4. Custom Skills
+
+Skills follow the open [Agent Skills](https://agentskills.io) standard. They are folders containing a `SKILL.md` file that Kiro activates when relevant to your task.
 
 ```
-$ .kiro/hooks-exec/post-task.sh
+.kiro/skills/our-api-error-pattern/
+└── SKILL.md
+    ---
+    name: our-api-error-pattern
+    description: Standard error response format for all REST endpoints. Use when creating or modifying API controllers.
+    ---
 
-🛤️  KiroRails post-task verification
-─────────────────────────────────────
-  Compile... ✓
-  Tests  ... ✓
-  Lint   ... ✗ FAILED
-─────────────────────────────────────
-✗ 1 check(s) failed — do NOT commit.
+    All API errors must return: { "error": { "code": "...", "message": "..." } }
+    Use @ControllerAdvice for global exception handling...
 ```
 
-The AI wrote code that passed tests but violated your checkstyle rules. Without KiroRails, that commit goes through. With KiroRails, it's blocked — the AI must fix the lint issue before proceeding.
+| Scope | Path | Priority |
+|-------|------|----------|
+| Project | `.kiro/skills/` | Higher (overrides user) — version-controlled with team |
+| User | `~/.kiro/skills/` | Lower (fallback) — personal, across all projects |
 
-### 4. Executable Hooks
+**Manage skills:**
+```bash
+kirorails skill list                    # list all skills (project + user)
+kirorails skill add "fix-auth"          # create new skill from template
+kirorails skill search "migration"      # find skills matching keyword
+```
 
-Real bash scripts that run your actual build tools. Not documentation — automation.
+**Auto-learn from completed work:**
+```bash
+kirorails learn                         # extract patterns from all verified specs
+kirorails learn "user-auth"             # learn from specific spec
+```
+
+The learner agent analyzes specs with VERIFICATION PASS and extracts patterns that appeared in 2+ tasks. Quality gate ensures only actionable, specific patterns become skills.
+
+Skills also appear as slash commands — type `/` in Kiro chat to see and activate them.
+
+### 5. Executable Hooks
+
+KiroRails installs both Kiro-native JSON hooks and bash scripts:
+
+**Kiro-native hooks** (`.kiro/hooks/*.json`) — trigger automatically:
+
+| Hook | Trigger | Action |
+|------|---------|--------|
+| Pre-Task Health Check | Pre Task Execution | Shell: `pre-task.sh` |
+| Post-Task Verification | Post Task Execution | Shell: `post-task.sh` |
+| Security Guardrails | File Save (migration, auth, model, config) | Ask Kiro |
+| Spec Validator | File Save (.kiro/specs/**/*.md) | Ask Kiro |
+
+**Bash scripts** (`.kiro/hooks-exec/`) — the actual build tool commands:
 
 ```bash
 # .kiro/kirorails.conf — edit for your project
@@ -183,14 +258,9 @@ lint=./mvnw checkstyle:check -q
 security=
 ```
 
-```bash
-.kiro/hooks-exec/pre-task.sh    # check clean tree + compile
-.kiro/hooks-exec/post-task.sh   # compile + test + lint gate
-```
-
 The hooks read `kirorails.conf` so they work with any build tool — Maven, Gradle, npm, cargo, whatever.
 
-### 5. Sprint & Backlog Management
+### 6. Sprint & Backlog Management
 
 For projects with many requirements, KiroRails organizes work into sprints using markdown files as the database:
 
@@ -198,16 +268,6 @@ For projects with many requirements, KiroRails organizes work into sprints using
 kirorails sprint init                     # creates backlog.md
 kirorails sprint new sprint-1-foundation  # creates sprint dir with tasks.md
 kirorails sprint list                     # show all sprints + progress
-```
-
-**backlog.md** tracks all requirements:
-```markdown
-| ID  | Requirement              | Sprint    | Status        |
-|-----|--------------------------|-----------|---------------|
-| R01 | User authentication      | sprint-1  | ✅ Done       |
-| R02 | Product CRUD             | sprint-2  | 🔄 In Progress|
-| R03 | Order management         | sprint-3  | 🔲 Todo       |
-| R04 | Payment integration      | —         | ❌ Blocked    |
 ```
 
 Quick tasks skip the full planning flow:
@@ -219,17 +279,44 @@ kirorails quick "Fix date format" --sprint sprint-2     # add to existing sprint
 
 ---
 
+## Deep Interview (Clarifier)
+
+The clarifier uses Socratic questioning to eliminate ambiguity before planning. It scores clarity across weighted dimensions:
+
+```
+📊 Clarity Score: 45/100 (threshold: 70)
+  Functional:      35/100 ████░░░░░░ ← needs work
+  Technical:       60/100 ██████░░░░
+  User Experience: 20/100 ██░░░░░░░░ ← needs work
+  Data & State:    55/100 █████░░░░░
+  Non-functional:  80/100 ████████░░ ✓
+```
+
+**Socratic techniques used:**
+- **Assumption exposure** — "You said X, but this implies Y — is that correct?"
+- **Edge case probing** — "What happens when [normal flow] fails?"
+- **Contradiction surfacing** — "You want A and B, but they conflict when..."
+- **Scale questioning** — "This works for 10 users. What changes at 10,000?"
+
+Planning cannot begin until clarity reaches 70/100 (or user explicitly accepts defaults).
+
+```bash
+kirorails clarify "user authentication"
+```
+
+---
+
 ## Stack Blueprints
 
-Pre-configured opinions for your stack. Composable — use multiple:
+Pre-configured opinions for your stack. Composable — use multiple. Each uses Kiro's `fileMatch` inclusion so it only loads when you're working on relevant files:
 
-| Blueprint | Focus |
-|-----------|-------|
-| `java-legacy` | Safe refactoring, migration rules, legacy patterns |
-| `spring-boot` | Spring Boot 3.x conventions, sliced tests, security config |
-| `postgres` | Zero-downtime migrations, query optimization |
-| `python-fastapi` | Pydantic v2, async patterns, typed config |
-| `compliance` | Audit trails, SOX/HIPAA/PCI-DSS/GDPR awareness |
+| Blueprint | Focus | Activates for |
+|-----------|-------|---------------|
+| `java-legacy` | Safe refactoring, migration rules, legacy patterns | `*.java`, `pom.xml`, `build.gradle` |
+| `spring-boot` | Spring Boot 3.x conventions, sliced tests, security config | `*.java`, `application*.yml` |
+| `postgres` | Zero-downtime migrations, query optimization | `*.sql`, `migration*/**` |
+| `python-fastapi` | Pydantic v2, async patterns, typed config | `*.py`, `pyproject.toml` |
+| `compliance` | Audit trails, SOX/HIPAA/PCI-DSS/GDPR awareness | Manual inclusion |
 
 ```bash
 kirorails init --pack spring-boot,postgres,compliance --mode full
@@ -265,9 +352,37 @@ kirorails status
 
 ---
 
+## Installation Health Check
+
+```bash
+kirorails doctor
+```
+
+```
+🩺 KiroRails Doctor
+
+  ✅ .kiro/ directory exists
+  ✅ kirorails.conf exists
+  ✅ kirorails.conf has compile command
+  ✅ kirorails.conf has test command
+  ✅ agents/planner.md
+  ✅ agents/verifier.md
+  ✅ agents/clarifier.md
+  ✅ agents/analyzer.md
+  ✅ hooks-exec/pre-task.sh exists
+  ✅ hooks-exec/pre-task.sh is executable
+  ...
+
+────────────────────────────────────────
+  ✅ 20 passed  ⚠️  0 warnings  ❌ 0 failed
+  🎉 Installation is healthy!
+```
+
+---
+
 ## What Gets Installed
 
-### Lite mode (default) — ~11 files
+### Lite mode (default)
 
 ```
 .kiro/
@@ -276,26 +391,42 @@ kirorails status
 │   ├── tech.md                  (always loaded)
 │   ├── structure.md             (always loaded)
 │   ├── coding-standards.md      (auto — feedback loops rule)
-│   └── brownfield-java.md       (auto — your stack blueprint)
+│   ├── skills.md                (always — custom skills system)
+│   └── brownfield-java.md       (fileMatch — your stack blueprint)
 ├── agents/                      ← Specialist Personas
+│   ├── clarifier.md             Deep Interview — Socratic clarification
 │   ├── planner.md               plan features into verified micro-tasks
-│   └── verifier.md              Truth Loop — verify everything
-├── hooks-exec/                  ← Real Automation
+│   ├── analyzer.md              pre-implementation consistency check
+│   ├── verifier.md              Truth Loop — verify everything
+│   └── learner.md               extract patterns into skills
+├── hooks/                       ← Kiro-Native Hooks (JSON)
+│   ├── pre-task-health-check.json    Pre Task Execution → shell
+│   ├── post-task-verification.json   Post Task Execution → shell
+│   ├── security-guardrails.json      File Save → Ask Kiro
+│   └── spec-validator.json           File Save → Ask Kiro
+├── hooks-exec/                  ← Bash Scripts (called by hooks)
 │   ├── pre-task.sh              check clean tree + compile
 │   └── post-task.sh             compile + test + lint gate
-├── kirorails.conf                ← hook config (edit for your build tool)
+├── skills/                      ← Custom Skills (Agent Skills standard)
+│   └── _template/SKILL.md       skill template
+├── state/                       ← Agent State (append-only)
+│   ├── STATE.md                 session summaries
+│   ├── CHANGELOG_AI.md          what changed and why
+│   ├── DECISIONS.md             architectural decisions
+│   └── RISKS.md                 known risks
+├── kirorails.conf               ← hook config (edit for your build tool)
 └── specs/
     └── feature/
         └── tasks.template.md    task breakdown template
 ```
 
-### Full mode — ~24 files
+### Full mode
 
 Everything in lite, plus:
 - 2 additional guardrails (testing, security)
 - 4 additional personas (bug hunter, codebase mapper, quick-change, report generator)
-- 6 markdown hooks (for when Kiro supports them natively)
-- 1 additional template (design.template.md)
+- 2 additional templates (design.template.md, bugfix.template.md)
+- Legacy markdown hooks in `hooks-reference/` (for reference only)
 
 ---
 
@@ -316,7 +447,27 @@ Autonomous execution via `kiro-cli chat --no-interactive`:
 ./scripts/kirorails-ralph.sh order-email-notification 5
 ```
 
-Every iteration: health check → pick task → implement → test → commit → update state. ⚠️ Experimental — test with HITL first.
+Every iteration: health check → pick task → implement → test → commit → update state.
+
+Features:
+- **Rate limit detection** with exponential backoff (60s → 120s → 240s, max 600s)
+- **Auto-retry** up to 5 consecutive rate limits before stopping
+- **Skills loading** — matching skills auto-inject into each iteration
+- **Progress tracking** via PROGRESS.md
+
+⚠️ Experimental — test with HITL first.
+
+---
+
+## Install as a Kiro Power
+
+KiroRails can also be installed as a [Kiro Power](https://kiro.dev/docs/powers/) for one-click setup:
+
+1. Open Kiro → Powers panel → **Add power from GitHub**
+2. Enter the repository URL
+3. Kiro installs the power and activates it when you mention delivery, planning, verification, or brownfield keywords
+
+The Power includes steering files for the delivery workflow, brownfield patterns, truth loop, and sprint management — activated dynamically based on your conversation context.
 
 ---
 
@@ -332,7 +483,7 @@ Built on [Ralph methodology](https://www.aihero.dev/tips-for-ai-coding-with-ralp
 │  2. PICK TASK      highest risk first        │
 │     One task, one context window, one commit │
 │                    ↓                         │
-│  3. IMPLEMENT      follow steering rules     │
+│  3. IMPLEMENT      follow steering + skills  │
 │     AI writes code guided by guardrails      │
 │                    ↓                         │
 │  4. VERIFY         post-task.sh              │
@@ -347,6 +498,7 @@ Built on [Ralph methodology](https://www.aihero.dev/tips-for-ai-coding-with-ralp
 - **Risk-first** — hard problems first, easy wins last. Risk scored 1-5 per task.
 - **Feedback loops** — tests, types, lint after every task. Nothing committed if they fail.
 - **The codebase wins** — existing patterns are respected. AI adapts to your code, not the other way around.
+- **Learn and reuse** — patterns extracted from verified work become skills for future tasks.
 
 The key insight: AI code quality degrades as context grows (context rot). By keeping each task small and verified, you get consistently high-quality output instead of a slow decline into hallucinations.
 
@@ -357,11 +509,15 @@ The key insight: AI code quality degrades as context grows (context rot). By kee
 ```
 kirorails init [--pack NAME] [--mode lite|full|add]   Install KiroRails
 kirorails doctor                                       Validate installation health
-kirorails clarify [feature]                            Pre-planning clarification
+kirorails clarify [feature]                            Deep Interview — Socratic clarification
 kirorails plan [feature]                               Trigger planner
 kirorails analyze [feature]                            Pre-implementation consistency check
 kirorails verify                                       Trigger Truth Loop
 kirorails map                                          Trigger codebase mapping
+kirorails learn [feature]                              Extract patterns into skills
+kirorails skill list                                   List all skills (project + user)
+kirorails skill add "<name>" [--user]                  Create new skill from template
+kirorails skill search "<keyword>"                     Find skills matching keyword
 kirorails sprint init                                  Create backlog.md
 kirorails sprint new <name>                            Create sprint directory
 kirorails sprint list                                  Show sprint progress
@@ -377,25 +533,32 @@ kirorails status                                       Progress dashboard
 |-----------|--------|
 | CLI install (`pip install kirorails`) | ✅ Tested |
 | Expert Guardrails (steering files) | ✅ Tested |
+| Custom Skills (auto-injection) | ✅ Tested |
 | Sprint/Backlog management | ✅ Tested |
 | Quick Tasks | ✅ Tested |
 | Progress Dashboard | ✅ Tested |
+| Installation Health Check (doctor) | ✅ Tested |
 | Executable Hooks (bash) | ✅ Tested |
-| Specialist Personas (agent frontmatter) | ✅ Tested |
+| Specialist Personas (9 agents) | ✅ Tested |
+| Deep Interview (Socratic clarifier) | 🔶 Tested in Kiro chat |
 | Planner and Verifier workflows | 🔶 Tested in Kiro chat |
-| Truth Loop (automated verification) | 🔶 Tested in Kiro chat |
-| Quality Hooks (markdown) | 🔶 Format validated |
-| Ralph Loop | ⚠️ Experimental |
+| Pre-implementation Analyzer | 🔶 Tested in Kiro chat |
+| Truth Loop + Phantom Detection | 🔶 Tested in Kiro chat |
+| Skill Learning (pattern extraction) | 🔶 Tested in Kiro chat |
+| Kiro-Native Hooks (JSON) | 🔶 Format validated |
+| KiroRails Power | 🔶 Format validated |
+| Ralph Loop (with rate limit handling) | ⚠️ Experimental |
 
 ---
 
 ## Roadmap
 
 - [ ] Test all specialist personas in live Kiro environment
-- [ ] Validate quality hooks in Kiro hooks system
+- [ ] Validate Kiro-native hooks in Kiro IDE
 - [ ] Validate Ralph Loop with current kiro-cli release
 - [ ] First tagged release with compatibility declaration
-- [ ] Explore Kiro Powers format (POWER.md + dynamic activation)
+- [ ] Notification callbacks (Telegram/Discord/Slack) for AFK mode
+- [ ] Publish KiroRails Power to Kiro marketplace
 
 ---
 

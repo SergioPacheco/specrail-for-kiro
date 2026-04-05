@@ -4,6 +4,11 @@
 # Runs kiro-cli in a loop, one task per iteration.
 # Each iteration: health check → pick task → implement → test → commit → update state.
 #
+# Features:
+#   - Rate limit detection with exponential backoff
+#   - Configurable max iterations
+#   - Progress tracking via PROGRESS.md
+#
 # ⚠️  This script is experimental. The kiro-cli interface may change.
 #     Test with --dry-run first. Start with HITL before going AFK.
 #
@@ -20,6 +25,11 @@ SPEC_NAME="${1:?Usage: $0 <spec-name> [max-iterations]}"
 MAX_ITERATIONS="${2:-10}"
 SPEC_DIR=".kiro/specs/${SPEC_NAME}"
 PROGRESS_FILE="${SPEC_DIR}/PROGRESS.md"
+
+# Rate limit config
+RATE_LIMIT_WAIT=60        # initial wait (seconds)
+RATE_LIMIT_MAX_WAIT=600   # max wait (10 min)
+RATE_LIMIT_MAX_RETRIES=5  # max consecutive retries before giving up
 
 # Validate spec exists
 if [ ! -d "$SPEC_DIR" ]; then
@@ -49,6 +59,24 @@ fi
 # Extract feedback loops from tasks.md
 FEEDBACK_LOOPS=$(sed -n '/^## Feedback loops$/,/^#/{/^## Feedback loops$/d;/^#/d;/^```/d;/^$/d;p;}' "${SPEC_DIR}/tasks.md" | head -1)
 
+# Rate limit detection
+is_rate_limited() {
+  local output="$1"
+  echo "$output" | grep -qiE "rate.?limit|too many requests|429|quota exceeded|throttl|overloaded"
+}
+
+wait_for_rate_limit() {
+  local wait_time="$1"
+  local retry_num="$2"
+  echo ""
+  echo "⏳ Rate limit detected (retry ${retry_num}/${RATE_LIMIT_MAX_RETRIES})"
+  echo "   Waiting ${wait_time}s before retrying..."
+  echo "   $(date '+%H:%M:%S') → resuming at $(date -d "+${wait_time} seconds" '+%H:%M:%S' 2>/dev/null || date -v+${wait_time}S '+%H:%M:%S' 2>/dev/null || echo '~')"
+  sleep "$wait_time"
+  echo "   ✓ Resuming."
+  echo ""
+}
+
 for ((i=1; i<=MAX_ITERATIONS; i++)); do
   echo "--- Iteration ${i}/${MAX_ITERATIONS} ---"
 
@@ -69,6 +97,7 @@ Get your bearings:
 2. Run: git log --oneline -10
 3. Read ${SPEC_DIR}/tasks.md — task list with done criteria
 4. Read .kiro/steering/ — project standards
+5. Check .kiro/skills/ — load any matching skills for the current task
 
 Environment health: ${HEALTH_STATUS}
 
@@ -86,12 +115,35 @@ Rules:
 - Do NOT edit tasks.md except to mark checkboxes.
 - Leave the codebase in a clean, mergeable state."
 
-  # Run kiro-cli
-  # ⚠️  Adjust flags for your kiro-cli version:
-  #   --no-interactive: print response and exit
-  #   --agent planner: use specific agent (optional)
-  #   --trust-tools read,write,shell: auto-approve tool use
-  RESULT=$(kiro-cli chat --no-interactive --trust-tools read,write,shell "$PROMPT" 2>&1) || true
+  # Run kiro-cli with rate limit retry
+  RATE_RETRIES=0
+  CURRENT_WAIT=$RATE_LIMIT_WAIT
+  RESULT=""
+
+  while true; do
+    RESULT=$(kiro-cli chat --no-interactive --trust-tools read,write,shell "$PROMPT" 2>&1) || true
+
+    if is_rate_limited "$RESULT"; then
+      RATE_RETRIES=$((RATE_RETRIES + 1))
+      if [ "$RATE_RETRIES" -ge "$RATE_LIMIT_MAX_RETRIES" ]; then
+        echo "❌ Rate limit: max retries (${RATE_LIMIT_MAX_RETRIES}) exceeded. Stopping."
+        echo "" >> "$PROGRESS_FILE"
+        echo "### ⏳ Rate limited — stopped at iteration ${i} after ${RATE_RETRIES} retries" >> "$PROGRESS_FILE"
+        exit 2
+      fi
+      wait_for_rate_limit "$CURRENT_WAIT" "$RATE_RETRIES"
+      # Exponential backoff: 60 → 120 → 240 → 480, capped at max
+      CURRENT_WAIT=$((CURRENT_WAIT * 2))
+      if [ "$CURRENT_WAIT" -gt "$RATE_LIMIT_MAX_WAIT" ]; then
+        CURRENT_WAIT=$RATE_LIMIT_MAX_WAIT
+      fi
+    else
+      # Reset rate limit state on success
+      RATE_RETRIES=0
+      CURRENT_WAIT=$RATE_LIMIT_WAIT
+      break
+    fi
+  done
 
   echo "$RESULT"
 

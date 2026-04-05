@@ -365,6 +365,158 @@ def doctor(project):
     click.echo()
 
 
+# ── skill ───────────────────────────────────────────────────────────────────
+
+@cli.group()
+def skill():
+    """Manage custom skills — reusable patterns with auto-injection.
+
+    \b
+    Examples:
+      kirorails skill list                # list all skills
+      kirorails skill add "fix-auth"      # create new skill
+      kirorails skill search "migration"  # find matching skills
+    """
+
+
+@skill.command("list")
+@click.option("--project", default=".", help="Project root directory")
+def skill_list(project):
+    """List all skills (project + user)."""
+    p = Path(project).resolve()
+    project_skills = p / ".kiro" / "skills"
+    user_skills = Path.home() / ".kiro" / "skills"
+
+    found = False
+    for label, path in [("Project", project_skills), ("User", user_skills)]:
+        if not path.is_dir():
+            continue
+        dirs = sorted([d for d in path.iterdir() if d.is_dir() and (d / "SKILL.md").exists() and d.name != "_template"])
+        if not dirs:
+            continue
+        found = True
+        click.echo(f"\n📦 {label} skills ({path}):\n")
+        for d in dirs:
+            meta = _parse_skill_meta(d / "SKILL.md")
+            desc = meta.get("description", "")[:60]
+            click.echo(f"  {meta.get('name', d.name):30s} {desc}")
+
+    if not found:
+        click.echo("\nNo skills found. Create one with: kirorails skill add \"name\"")
+    click.echo()
+
+
+@skill.command("add")
+@click.argument("name")
+@click.option("--user", is_flag=True, help="Create in ~/.kiro/skills/ instead of project")
+@click.option("--project", default=".", help="Project root directory")
+def skill_add(name, user, project):
+    """Create a new skill from template (Agent Skills format)."""
+    if user:
+        base = Path.home() / ".kiro" / "skills"
+    else:
+        base = Path(project).resolve() / ".kiro" / "skills"
+
+    slug = _slugify(name)
+    target = base / slug
+    if target.exists():
+        click.echo(f"❌ Skill already exists: {target}")
+        raise SystemExit(1)
+
+    target.mkdir(parents=True, exist_ok=True)
+    (target / "SKILL.md").write_text(f"""---
+name: {slug}
+description: <!-- Describe when Kiro should activate this skill. Be specific with keywords. -->
+---
+
+## Context
+
+<!-- When does this pattern apply? -->
+
+## Pattern
+
+<!-- The actual pattern, fix, or convention -->
+""")
+    click.echo(f"✅ Skill created: {target}/SKILL.md")
+    click.echo(f"   Edit SKILL.md to add your pattern and description.")
+
+
+@skill.command("search")
+@click.argument("keyword")
+@click.option("--project", default=".", help="Project root directory")
+def skill_search(keyword, project):
+    """Search skills by keyword (checks description and content)."""
+    p = Path(project).resolve()
+    keyword_lower = keyword.lower()
+    matches = []
+
+    for path in [p / ".kiro" / "skills", Path.home() / ".kiro" / "skills"]:
+        if not path.is_dir():
+            continue
+        for d in sorted(path.iterdir()):
+            skill_file = d / "SKILL.md"
+            if not d.is_dir() or not skill_file.exists() or d.name == "_template":
+                continue
+            content = skill_file.read_text().lower()
+            if keyword_lower in content:
+                meta = _parse_skill_meta(skill_file)
+                matches.append((d, meta))
+
+    if matches:
+        click.echo(f"\n🔍 Skills matching \"{keyword}\":\n")
+        for d, meta in matches:
+            desc = meta.get("description", "")[:60]
+            click.echo(f"  {meta.get('name', d.name):30s} {desc}")
+            click.echo(f"    {d}")
+    else:
+        click.echo(f"\nNo skills match \"{keyword}\".")
+    click.echo()
+
+
+def _parse_skill_meta(path: Path) -> dict:
+    """Parse YAML-like frontmatter from a SKILL.md file."""
+    content = path.read_text()
+    if not content.startswith("---"):
+        return {"name": path.parent.name}
+    parts = content.split("---", 2)
+    if len(parts) < 3:
+        return {"name": path.parent.name}
+    meta = {"name": path.parent.name}
+    for line in parts[1].strip().splitlines():
+        if ":" in line:
+            key, val = line.split(":", 1)
+            meta[key.strip()] = val.strip().strip('"\'')
+    return meta
+
+
+# ── learn ───────────────────────────────────────────────────────────────────
+
+@cli.command()
+@click.argument("feature", required=False)
+@click.option("--project", default=".", help="Project root directory")
+def learn(feature, project):
+    """Extract reusable patterns from completed specs into skills.
+
+    \b
+    Analyzes specs with VERIFICATION PASS and extracts patterns.
+
+    Examples:
+      kirorails learn                    # learn from all completed specs
+      kirorails learn "user-auth"        # learn from specific spec
+    """
+    kiro = Path(project).resolve() / ".kiro"
+    if not (kiro / "agents" / "learner.md").exists():
+        click.echo("❌ Learner not installed. Run: kirorails init")
+        raise SystemExit(1)
+    target = f'the spec: "{feature}"' if feature else "all completed specs with VERIFICATION PASS"
+    click.echo(f"""
+🧠 Tell Kiro:
+  "Analyze {target} using the learner agent.
+   Extract reusable patterns into .kiro/skills/.
+   Only create skills from verified, successful implementations."
+""")
+
+
 # ── status ──────────────────────────────────────────────────────────────────
 
 @cli.command()

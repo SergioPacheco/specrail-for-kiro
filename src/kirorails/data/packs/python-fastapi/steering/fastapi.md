@@ -1,6 +1,7 @@
 ---
+inclusion: fileMatch
+fileMatchPattern: ["**/*.py", "**/pyproject.toml", "**/requirements*.txt"]
 description: Python FastAPI specific patterns and conventions
-inclusion: auto
 ---
 
 # FastAPI Overlay
