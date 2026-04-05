@@ -8,6 +8,7 @@ from datetime import date
 from kirorails.installer import BLUEPRINTS, install
 from kirorails.sprint import init_backlog, new_sprint, read_sprint_status, read_backlog
 from kirorails.phantom import check_phantom_tasks
+from kirorails.scanner import scan_and_fill
 
 
 @click.group()
@@ -63,6 +64,59 @@ def init(pack, project, list_packs):
 
     packs = [p.strip() for p in pack.split(",")]
     install(Path(project).resolve(), packs)
+
+
+# ── scan ─────────────────────────────────────────────────────────────────────
+
+@cli.command()
+@click.option("--project", default=".", help="Project root directory")
+@click.option("--dry-run", is_flag=True, help="Show what would be filled without writing")
+def scan(project, dry_run):
+    """Auto-detect stack and fill steering files.
+
+    \b
+    Detects language, frameworks, build tool, database, and test framework.
+    Fills tech.md, structure.md, and kirorails.conf with real values.
+    Only fills fields that still have placeholder comments.
+
+    \b
+    Examples:
+      kirorails scan                 # detect and fill
+      kirorails scan --dry-run       # preview without writing
+    """
+    p = Path(project).resolve()
+    click.echo("\n🔍 KiroRails Scan\n")
+
+    result = scan_and_fill(p) if not dry_run else {"info": __import__("kirorails.scanner", fromlist=["detect_stack"]).detect_stack(p), "filled": []}
+
+    info = result["info"]
+    if "error" in result:
+        click.echo(f"❌ {result['error']}")
+        raise SystemExit(1)
+
+    # Show detected stack
+    lang = info.get("language") or "Unknown"
+    ver = info.get("runtime_version") or ""
+    click.echo(f"  Language:    {lang}{f' ({ver})' if ver else ''}")
+    if info.get("frameworks"):
+        click.echo(f"  Frameworks:  {', '.join(info['frameworks'])}")
+    if info.get("database"):
+        click.echo(f"  Database:    {', '.join(info['database'])}")
+    if info.get("build_tool"):
+        click.echo(f"  Build:       {info['build_tool']}")
+    if info.get("test_framework"):
+        click.echo(f"  Tests:       {info['test_framework']}")
+    click.echo(f"  Docker:      {'yes' if info.get('has_docker') else 'no'}")
+    click.echo(f"  CI/CD:       {'yes' if info.get('has_ci') else 'no'}")
+
+    if dry_run:
+        click.echo("\n  (dry-run — no files written)")
+    elif result.get("filled"):
+        click.echo(f"\n  ✅ Filled: {', '.join(result['filled'])}")
+    else:
+        click.echo("\n  ✅ Steering files already customized — nothing to fill.")
+
+    click.echo()
 
 
 
