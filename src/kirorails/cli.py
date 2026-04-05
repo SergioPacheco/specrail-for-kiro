@@ -617,9 +617,61 @@ def _parse_skill_meta(path: Path) -> dict:
 # ── learn ───────────────────────────────────────────────────────────────────
 
 @cli.command()
-@click.argument("feature", required=False)
+@click.argument("spec")
+@click.option("--task", default=None, help="Task number to run (default: next uncompleted)")
 @click.option("--project", default=".", help="Project root directory")
-def learn(feature, project):
+def run(spec, task, project):
+    """Run the next task in a spec using kiro-cli with auto-approve.
+
+    \b
+    Reads kiro_trust_tools from kirorails.conf (default: read,write,shell).
+    Set kiro_trust_tools= (empty) to require manual approval.
+
+    \b
+    Examples:
+      kirorails run sprint-1-fundacao-orcamento
+      kirorails run sprint-1-fundacao-orcamento --task 3
+    """
+    import subprocess
+    p = Path(project).resolve()
+    kiro = p / ".kiro"
+    spec_dir = kiro / "specs" / spec
+    tasks_file = spec_dir / "tasks.md"
+
+    if not tasks_file.exists():
+        click.echo(f"❌ tasks.md not found: {spec_dir}")
+        raise SystemExit(1)
+
+    # Read trust level from kirorails.conf
+    conf = kiro / "kirorails.conf"
+    trust = "read,write,shell"  # default
+    if conf.exists():
+        for line in conf.read_text().splitlines():
+            if line.startswith("kiro_trust_tools="):
+                trust = line.split("=", 1)[1].strip()
+                break
+
+    task_ref = f"task {task}" if task else "the next uncompleted task"
+    prompt = (
+        f"Implement {task_ref} from {tasks_file}. "
+        f"Read .kiro/steering/ for project standards. "
+        f"Run .kiro/hooks-exec/post-task.sh after implementing. "
+        f"Mark the task as [x] when done."
+    )
+
+    cmd = ["kiro-cli", "chat", "--no-interactive"]
+    if trust:
+        cmd += ["--trust-tools", trust]
+    cmd.append(prompt)
+
+    click.echo(f"\n🚀 Running: {spec} — {task_ref}")
+    click.echo(f"   Trust: {trust or '(ask every time)'}\n")
+
+    try:
+        subprocess.run(cmd, cwd=p)
+    except FileNotFoundError:
+        click.echo("❌ kiro-cli not found. Install it from https://kiro.dev/docs/cli/")
+        raise SystemExit(1)
     """Extract reusable patterns from completed specs into skills.
 
     \b
