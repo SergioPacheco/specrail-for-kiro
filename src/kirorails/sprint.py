@@ -117,9 +117,14 @@ def read_sprint_status(project: Path = None) -> list[dict]:
             continue
 
         content = tasks_file.read_text()
-        # Count tasks by looking for ### [ ] and ### [x] patterns
-        total = content.count("### [")
-        done = content.count("### [x]") + content.count("### [X]")
+        # Count tasks — supports both formats:
+        # Standard: ### [ ] Task N: or ### [x] Task N:
+        # Legacy:   ### Task N:
+        standard = content.count("### [")
+        legacy = len([l for l in content.splitlines()
+                      if l.startswith("### Task ") or l.startswith("### ✅")])
+        total = standard if standard > 0 else legacy
+        done = content.count("### [x]") + content.count("### [X]") + content.count("### ✅")
         blocked = content.count("### [!]")
 
         sprints.append({
