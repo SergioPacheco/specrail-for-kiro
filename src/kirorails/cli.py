@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import date
 from kirorails.installer import BLUEPRINTS, install
 from kirorails.sprint import init_backlog, new_sprint, read_sprint_status, read_backlog
-from kirorails.phantom import check_phantom_tasks
+from kirorails.phantom import check_phantom_tasks, check_impl_tasks
 from kirorails.scanner import scan_and_fill
 
 
@@ -174,6 +174,53 @@ def check_phantom(spec, commits, project):
         click.echo(f"\n  ⚠️  {len(suspicious)} suspicious task(s) — review before committing.")
     else:
         click.echo(f"\n  🎉 All completed tasks have real implementations.")
+    click.echo()
+
+
+@cli.command("check-impl")
+@click.argument("spec", required=False)
+@click.option("--project", default=".", help="Project root directory")
+def check_impl(spec, project):
+    """Check if task files actually exist in the project.
+
+    \b
+    Works without needing tasks marked as [x].
+    Looks up each file listed in tasks.md and checks if it exists.
+
+    \b
+    Verdicts:
+      ✅ Implemented  — all listed files exist
+      ⚠️  Partial      — some files exist, some missing
+      ❌ Missing       — no listed files found
+
+    Examples:
+      kirorails check-impl                           # check all specs
+      kirorails check-impl sprint-1-fundacao         # check specific spec
+    """
+    p = Path(project).resolve()
+    results = check_impl_tasks(p, spec_name=spec)
+
+    if not results:
+        click.echo("\n⚠️  No tasks with file listings found.\n")
+        return
+
+    implemented = [r for r in results if r["verdict"] == "✅"]
+    partial = [r for r in results if r["verdict"] == "⚠️"]
+    missing = [r for r in results if r["verdict"] == "❌"]
+
+    click.echo(f"\n🔎 KiroRails Implementation Check\n{'─' * 40}")
+
+    current_spec = None
+    for r in results:
+        if r["spec"] != current_spec:
+            current_spec = r["spec"]
+            click.echo(f"\n📋 {current_spec}")
+        click.echo(f"  {r['verdict']}  {r['task'][:55]}")
+        if r["verdict"] != "✅":
+            click.echo(f"      → {r['reason']}")
+
+    click.echo(f"\n{'─' * 40}")
+    click.echo(f"  ✅ {len(implemented)} implemented  ⚠️  {len(partial)} partial  ❌ {len(missing)} missing")
     click.echo()
 
 

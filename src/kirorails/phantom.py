@@ -97,6 +97,54 @@ def _verdict(task: dict, changed_files: set[str]) -> tuple[str, str]:
     return "✅", f"Files changed: {', '.join(matched)}"
 
 
+def check_impl_tasks(project_dir: Path, spec_name: str | None = None) -> list[dict]:
+    """
+    Check if files listed in tasks actually exist in the project.
+    Works with both standard [x] format and legacy ### Task N: format.
+    """
+    kiro = project_dir / ".kiro" / "specs"
+    if not kiro.exists():
+        return []
+
+    results = []
+    candidates = [kiro / spec_name / "tasks.md"] if spec_name else sorted(kiro.rglob("tasks.md"))
+
+    for tasks_file in candidates:
+        if not tasks_file.exists():
+            continue
+        spec = tasks_file.parent.name
+        content = tasks_file.read_text()
+
+        # Parse all tasks (both formats)
+        pattern = re.compile(
+            r'### (?:\[.\] )?(?:✅ )?Task \d+[:\s]+(.+?)\n(.*?)(?=### (?:\[.\] )?(?:✅ )?Task |\Z)',
+            re.DOTALL
+        )
+        for match in pattern.finditer(content):
+            title = match.group(1).strip()
+            body = match.group(2)
+
+            files_match = re.search(r'\*\*Files:\*\*\s*(.+?)(?:\n|$)', body)
+            files_raw = files_match.group(1).strip() if files_match else ""
+
+            if not files_raw or "<!--" in files_raw:
+                results.append({"spec": spec, "task": title, "verdict": "⚠️", "reason": "No files listed"})
+                continue
+
+            listed = [f.strip().strip('`') for f in re.split(r'[,\s]+', files_raw) if f.strip() and not f.startswith('#')]
+            found = [f for f in listed if any(project_dir.rglob(Path(f).name))]
+            missing = [f for f in listed if f not in found and not any(project_dir.rglob(Path(f).name))]
+
+            if not missing:
+                results.append({"spec": spec, "task": title, "verdict": "✅", "reason": f"All files exist: {', '.join(listed)}"})
+            elif found:
+                results.append({"spec": spec, "task": title, "verdict": "⚠️", "reason": f"Partial: found {', '.join(found)} | missing {', '.join(missing)}"})
+            else:
+                results.append({"spec": spec, "task": title, "verdict": "❌", "reason": f"Files not found: {', '.join(listed)}"})
+
+    return results
+
+
 def check_phantom_tasks(project_dir: Path, spec_name: str | None = None,
                         since_commits: int = 20) -> list[dict]:
     """
