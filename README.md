@@ -38,6 +38,13 @@ kirorails init --pack java-legacy
 kirorails doctor    # verify installation health
 ```
 
+> **Linux/Ubuntu users:** If you get `externally-managed-environment`, use one of:
+> ```bash
+> pipx install kirorails          # recommended
+> pip install kirorails --user    # alternative
+> uv tool install kirorails       # fastest
+> ```
+
 ### Option 3: Kiro Power (one-click in Kiro IDE)
 
 1. Open Kiro → Powers panel → **Add power from GitHub**
