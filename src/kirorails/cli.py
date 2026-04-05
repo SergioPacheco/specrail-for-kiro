@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import date
 from kirorails.installer import BLUEPRINTS, install
 from kirorails.sprint import init_backlog, new_sprint, read_sprint_status, read_backlog
+from kirorails.phantom import check_phantom_tasks
 
 
 @click.group()
@@ -19,24 +20,23 @@ def cli():
 
 @cli.command()
 @click.option("--pack", help="Stack blueprint(s), comma-separated")
-@click.option("--mode", type=click.Choice(["lite", "full", "add"]), default="lite", help="Install mode")
 @click.option("--project", default=".", help="Project root directory")
 @click.option("--list", "list_packs", is_flag=True, help="List available stack blueprints")
-def init(pack, mode, project, list_packs):
+def init(pack, project, list_packs):
     """Install KiroRails into your project.
 
     \b
     Examples:
       kirorails init                          # interactive
       kirorails init --pack java-legacy       # direct
-      kirorails init --pack spring-boot,postgres --mode full
+      kirorails init --pack spring-boot,postgres
       kirorails init --list
     """
     if list_packs:
         click.echo("\n📦 Available Stack Blueprints:\n")
         for name, info in BLUEPRINTS.items():
             click.echo(f"  {name:20s} {info['desc']}")
-        click.echo(f"\n  Modes: lite (default) | full | add\n")
+        click.echo()
         return
 
     if not pack:
@@ -61,45 +61,69 @@ def init(pack, mode, project, list_packs):
                 raise SystemExit(1)
         pack = ",".join(selected)
 
-        mode = click.prompt("Install mode", type=click.Choice(["lite", "full", "add"]), default="lite")
-
     packs = [p.strip() for p in pack.split(",")]
-    install(Path(project).resolve(), packs, mode)
+    install(Path(project).resolve(), packs)
 
 
-# ── map / plan / verify ────────────────────────────────────────────────────
 
-@cli.command()
+# ── check-phantom ─────────────────────────────────────────────────────────
+
+@cli.command("check-phantom")
+@click.argument("spec", required=False)
+@click.option("--commits", default=20, help="Number of recent commits to check against")
 @click.option("--project", default=".", help="Project root directory")
-def map(project):
-    """Trigger codebase mapping (generates CODEBASE.md)."""
-    kiro = Path(project).resolve() / ".kiro"
-    if not (kiro / "agents" / "codebase-mapper.md").exists():
-        click.echo("❌ codebase-mapper not installed. Run: kirorails init --mode full")
+def check_phantom(spec, commits, project):
+    """Detect phantom completions — tasks marked done with no real code changes.
+
+    \b
+    Compares tasks marked [x] in tasks.md against actual git changes.
+
+    Verdicts:
+      ✅ Real      — files changed, tests present
+      ⚠️  Suspicious — files changed but no tests, or no files listed
+      👻 Phantom   — marked done but no matching code changes found
+
+    Examples:
+      kirorails check-phantom                    # check all specs
+      kirorails check-phantom user-auth          # check specific spec
+      kirorails check-phantom --commits 50       # look back 50 commits
+    """
+    p = Path(project).resolve()
+    results = check_phantom_tasks(p, spec_name=spec, since_commits=commits)
+
+    if not results:
+        click.echo("\n✅ No completed tasks found to check.\n")
+        return
+
+    phantoms = [r for r in results if r["verdict"] == "👻"]
+    suspicious = [r for r in results if r["verdict"] == "⚠️"]
+    real = [r for r in results if r["verdict"] == "✅"]
+
+    click.echo(f"\n👻 KiroRails Phantom Detection\n{'─' * 40}")
+
+    current_spec = None
+    for r in results:
+        if r["spec"] != current_spec:
+            current_spec = r["spec"]
+            click.echo(f"\n📋 {current_spec}")
+        click.echo(f"  {r['verdict']}  {r['task'][:50]}")
+        if r["verdict"] != "✅":
+            click.echo(f"      → {r['reason']}")
+
+    click.echo(f"\n{'─' * 40}")
+    click.echo(f"  ✅ {len(real)} real  ⚠️  {len(suspicious)} suspicious  👻 {len(phantoms)} phantom")
+
+    if phantoms:
+        click.echo(f"\n  ❌ {len(phantoms)} phantom task(s) detected — these need investigation.")
         raise SystemExit(1)
-    click.echo("""
-🗺️  Tell Kiro:
-  "Map this codebase using the codebase-mapper agent.
-   Save the result to .kiro/state/CODEBASE.md"
-""")
+    elif suspicious:
+        click.echo(f"\n  ⚠️  {len(suspicious)} suspicious task(s) — review before committing.")
+    else:
+        click.echo(f"\n  🎉 All completed tasks have real implementations.")
+    click.echo()
 
 
-@cli.command()
-@click.argument("feature", required=False)
-@click.option("--project", default=".", help="Project root directory")
-def plan(feature, project):
-    """Trigger the planner specialist persona."""
-    kiro = Path(project).resolve() / ".kiro"
-    if not (kiro / "agents" / "planner.md").exists():
-        click.echo("❌ Planner not installed. Run: kirorails init")
-        raise SystemExit(1)
-    prompt = f'Plan the feature: "{feature}"' if feature else "Plan the next feature"
-    click.echo(f"""
-📋 Tell Kiro:
-  "{prompt} using the planner agent.
-   Follow Ralph principles: small tasks, risk-first, feedback loops."
-""")
-
+# ── verify / clarify / analyze ────────────────────────────────────────────
 
 @cli.command()
 @click.option("--project", default=".", help="Project root directory")
@@ -330,7 +354,7 @@ def doctor(project):
 
     # Agents
     agents_dir = kiro / "agents"
-    for agent in ["planner.md", "verifier.md", "clarifier.md", "analyzer.md"]:
+    for agent in ["verifier.md", "clarifier.md", "analyzer.md", "learner.md"]:
         check(f"agents/{agent}", (agents_dir / agent).is_file())
 
     # Hooks
