@@ -6,12 +6,43 @@ KiroRails is a delivery kit for [Kiro](https://kiro.dev) that turns AI-assisted 
 
 Built specifically for **brownfield projects** where the risk of AI breaking existing code is high.
 
+> *"GSD builds. BMAD organizes. KiroRails guarantees."*
+
+---
+
+## Quick Start
+
+### Option 1: curl (no dependencies)
+
 ```bash
-pip install kirorails
-kirorails init
+# Install core files
+curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash
+
+# With a stack blueprint
+curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash -s -- --pack java-legacy
+
+# Multiple blueprints
+curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash -s -- --pack spring-boot,postgres
 ```
 
-> *"GSD builds. BMAD organizes. KiroRails guarantees."*
+Installs all steering files, agents, hooks, templates, and state files directly from GitHub. No Python, no Node.js required.
+
+> For the full CLI (`check-phantom`, sprint management, skill learning), also run `pip install kirorails`.
+
+### Option 2: pip (full CLI)
+
+```bash
+pip install kirorails
+cd your-project
+kirorails init --pack java-legacy
+kirorails doctor    # verify installation health
+```
+
+### Option 3: Kiro Power (one-click in Kiro IDE)
+
+1. Open Kiro → Powers panel → **Add power from GitHub**
+2. Enter: `https://github.com/SergioPacheco/KiroRails`
+3. Done — activates automatically when you mention delivery, planning, or brownfield keywords
 
 ---
 
@@ -70,71 +101,7 @@ The system is built on six pillars:
 
 ---
 
-## Quick Start
-
-### Option 1: curl (no dependencies)
-
-```bash
-# Install core files
-curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash
-
-# With a stack blueprint
-curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash -s -- --pack java-legacy
-
-# Multiple blueprints
-curl -fsSL https://raw.githubusercontent.com/SergioPacheco/KiroRails/main/install.sh | bash -s -- --pack spring-boot,postgres
-```
-
-Installs all steering files, agents, hooks, templates, and state files directly from GitHub. No Python, no Node.js required.
-
-> For the full CLI (`check-phantom`, sprint management, skill learning), also run `pip install kirorails`.
-
-### Option 2: pip (full CLI)
-
-```bash
-pip install kirorails
-cd your-project
-kirorails init --pack java-legacy
-kirorails doctor    # verify installation health
-```
-
-### Option 3: Kiro Power (one-click in Kiro IDE)
-
-1. Open Kiro → Powers panel → **Add power from GitHub**
-2. Enter: `https://github.com/SergioPacheco/KiroRails`
-3. Done — activates automatically when you mention delivery, planning, or brownfield keywords
-
----
-
-The interactive setup (pip only) asks for your stack:
-
-```
-🛤️  KiroRails Setup
-
-Available stack blueprints:
-  1. java-legacy          Java 11+, layered architecture, safe refactoring
-  2. spring-boot          Spring Boot 3.x, REST APIs, sliced tests
-  3. postgres             PostgreSQL migrations, query review, schema safety
-  4. python-fastapi       Python + FastAPI, async patterns, Pydantic v2
-  5. compliance           Audit trails, SOX/HIPAA/PCI-DSS/GDPR
-
-Which blueprint(s)? 1,2
-```
-
-Then set up your project:
-
-```bash
-kirorails sprint init                    # create backlog for requirements
-kirorails sprint new sprint-1-foundation # create first sprint
-kirorails quick "Add CRUD for Product"   # quick task, no planning overhead
-kirorails status                         # see progress dashboard
-```
-
----
-
 ## The Delivery Workflow
-
-KiroRails provides a structured workflow from idea to verified delivery:
 
 ```
 clarify → analyze → implement → check-phantom → verify → learn
@@ -483,18 +450,6 @@ Features:
 
 ---
 
-## Install as a Kiro Power
-
-KiroRails can also be installed as a [Kiro Power](https://kiro.dev/docs/powers/) for one-click setup:
-
-1. Open Kiro → Powers panel → **Add power from GitHub**
-2. Enter the repository URL
-3. Kiro installs the power and activates it when you mention delivery, planning, verification, or brownfield keywords
-
-The Power includes steering files for the delivery workflow, brownfield patterns, truth loop, and sprint management — activated dynamically based on your conversation context.
-
----
-
 ## Core Principles
 
 Built on [Ralph methodology](https://www.aihero.dev/tips-for-ai-coding-with-ralph-wiggum):
@@ -555,6 +510,7 @@ kirorails status                                       Progress dashboard
 | Component | Status |
 |-----------|--------|
 | CLI install (`pip install kirorails`) | ✅ Tested |
+| curl/bash installer | ✅ Tested |
 | Expert Guardrails (steering files) | ✅ Tested |
 | Custom Skills (auto-injection) | ✅ Tested |
 | Sprint/Backlog management | ✅ Tested |
